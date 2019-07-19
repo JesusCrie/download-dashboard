@@ -12,7 +12,10 @@
     "baseUrl": ".",
     "types": [
       "webpack-env",
-      "vuetify"
+      "vuetify",
+      "vue",
+      "vuex",
+      "vue-router"
     ],
     "paths": {
       "@/*": [
