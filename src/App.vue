@@ -1,33 +1,72 @@
 <template>
-    <div id="app">
-        <div id="nav">
-            <router-link to="/">Home</router-link>
-            |
-            <router-link to="/about">About</router-link>
-        </div>
-        <router-view/>
-    </div>
+    <v-app>
+
+        <!-- Drawer -->
+        <v-navigation-drawer app permanent
+                             v-model="drawer"
+                             :mini-variant.sync="miniDrawer">
+
+            <!-- Header -->
+            <v-toolbar flat class="transparent">
+                <v-list>
+                    <v-list-tile avatar>
+                        <v-list-tile-avatar>
+                            <img src="@/assets/logo.png"/>
+                        </v-list-tile-avatar>
+
+                        <v-list-tile-content>
+                            <v-list-tile-title>Menu</v-list-tile-title>
+                        </v-list-tile-content>
+
+                        <v-list-tile-action>
+                            <v-btn icon @click.stop="miniDrawer = !miniDrawer">
+                                <v-icon>mdi-chevron-left</v-icon>
+                            </v-btn>
+                        </v-list-tile-action>
+                    </v-list-tile>
+                </v-list>
+            </v-toolbar>
+
+            <!-- Links -->
+            <v-list>
+                <v-divider></v-divider>
+
+
+            </v-list>
+
+        </v-navigation-drawer>
+
+        <!-- Toolbar -->
+        <v-toolbar app flat>
+            <v-toolbar-title class="headline">
+                <span>Downloader Dashboard</span>
+            </v-toolbar-title>
+        </v-toolbar>
+
+        <!-- Content -->
+        <v-content>
+            <v-container>
+                <!-- TODO: router -->
+            </v-container>
+        </v-content>
+
+        <!-- Footer -->
+        <v-footer app></v-footer>
+
+    </v-app>
 </template>
 
-<style lang="scss">
-    #app {
-        font-family: 'Avenir', Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-align: center;
-        color: #2c3e50;
-    }
+<script>
+    export default {
+        name: 'App',
+        components: {},
 
-    #nav {
-        padding: 30px;
-
-        a {
-            font-weight: bold;
-            color: #2c3e50;
-
-            &.router-link-exact-active {
-                color: #42b983;
-            }
+        data() {
+            // No need to use the store for this
+            return {
+                miniDrawer: true,
+                drawer: true
+            };
         }
-    }
-</style>
+    };
+</script>
