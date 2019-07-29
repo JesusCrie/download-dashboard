@@ -1,46 +1,38 @@
 <template>
-    <VNavigationDrawer app stateless dark
+    <VNavigationDrawer app dark disable-route-watcher clipped
                        v-model="drawerVisible"
                        :mini-variant.sync="drawerMini">
 
         <!-- Header -->
-        <VToolbar flat class="transparent">
-            <VList>
-                <VListTile avatar>
-                    <VListTileAvatar>
-                        <img src="../assets/logo.png" alt="Logo"/>
-                    </VListTileAvatar>
+        <VList dense nav class="py-0">
+            <VListItem>
+                <VListItemAvatar>
+                    <img src="../assets/logo.png" alt="Logo"/>
+                </VListItemAvatar>
 
-                    <VListTileContent>
-                        <VListTileTitle>Downloader Dashboard</VListTileTitle>
-                    </VListTileContent>
+                <VListItemTitle>Navigation</VListItemTitle>
 
-                    <VListTileAction>
-                        <VBtn icon @click.stop="drawerMini = !drawerMini">
-                            <VIcon>mdi-chevron-left</VIcon>
-                        </VBtn>
-                    </VListTileAction>
-                </VListTile>
-            </VList>
-        </VToolbar>
+                <VBtn icon @click.stop="drawerMini = !drawerMini">
+                    <VIcon>mdi-chevron-left</VIcon>
+                </VBtn>
+            </VListItem>
 
-        <!-- Links -->
-        <VList>
+            <!-- Links -->
             <VDivider/>
 
-            <VListTile v-for="link in navigationLinks" :key="link.routeName"
-                       v-ripple="true"
-                       @click="navigate(link.routeName)">
+            <VListItem v-for="link in navigationLinks" :key="link.routeName"
+                       ripple link
+                       @click.stop="navigate(link.routeName)">
 
-                <VListTileAction>
+                <VListItemAction>
                     <VIcon>mdi-{{ link.iconName }}</VIcon>
-                </VListTileAction>
+                </VListItemAction>
 
-                <VListTileContent>
-                    <VListTileTitle>{{ link.displayName }}</VListTileTitle>
-                </VListTileContent>
+                <VListItemContent>
+                    <VListItemTitle>{{ link.displayName }}</VListItemTitle>
+                </VListItemContent>
 
-            </VListTile>
+            </VListItem>
 
         </VList>
 

@@ -1,29 +1,33 @@
 <template>
     <VApp>
+        <VSystemBar v-if="$vuetify.breakpoint.smAndDown"/>
+
         <!-- Drawer -->
         <TheSidebar/>
 
         <!-- Toolbar -->
-        <TheToolbar/>
+        <TheAppBar/>
 
         <!-- Content -->
         <VContent>
-            <VContainer fluid>
-                <router-view />
-            </VContainer>
+            <router-view/>
         </VContent>
 
-        <!-- Footer -->
-        <VFooter app/>
+        <!-- Footer, no really need for now -->
+        <!--VFooter app>
+            <VFlex text-xs-center xs12>
+                &copy; 2019 - <strong>Lucas Malandrino</strong>
+            </VFlex>
+        </VFooter-->
     </VApp>
 </template>
 
 <script lang="ts">
     import TheSidebar from '@/components/TheSidebar.vue';
-    import TheToolbar from '@/components/TheToolbar.vue';
+    import TheAppBar from '@/components/TheAppBar.vue';
 
     export default {
         name: 'App',
-        components: {TheToolbar, TheSidebar}
+        components: {TheAppBar, TheSidebar}
     };
 </script>
