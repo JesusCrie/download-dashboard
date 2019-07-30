@@ -6,7 +6,7 @@
             <strong>Online</strong>&nbsp;at {{ host }}
         </template>
         <template v-else>
-            <string>Offline</string>
+            <strong>Offline</strong>
         </template>
     </VChip>
 </template>

@@ -13,6 +13,80 @@
         <VLayout wrap :class="responsivePadding">
             <VFlex>
 
+                <VFlex class="mb-3">
+                    <!-- Add btn -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary">
+                                <VIcon>mdi-plus</VIcon>&nbsp;Add
+                            </VBtn>
+                        </template>
+
+                        <span>Add a new URI<br>to the queue</span>
+                    </VTooltip>
+
+                    <VDivider vertical class="mx-2"/>
+
+                    <!-- Start selected -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary" class="no-radius right">
+                                <VIcon>mdi-play</VIcon>
+                            </VBtn>
+                        </template>
+
+                        <span>Resume selected</span>
+                    </VTooltip>
+
+                    <!-- Pause selected -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary" tile>
+                                <VIcon>mdi-pause</VIcon>
+                            </VBtn>
+                        </template>
+
+                        <span>Pause selected</span>
+                    </VTooltip>
+
+                    <!-- Cancel selected -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary" class="no-radius left">
+                                <VIcon>mdi-stop</VIcon>
+                            </VBtn>
+                        </template>
+
+                        <span>Stop selected</span>
+                    </VTooltip>
+
+                    <VDivider vertical class="mx-2"/>
+
+                    <!-- Global start -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary" class="no-radius right">
+                                <VIcon>mdi-playlist-play</VIcon>
+                            </VBtn>
+                        </template>
+
+                        <span>Resume all</span>
+                    </VTooltip>
+
+                    <!-- Global pause -->
+                    <VTooltip top>
+                        <template v-slot:activator="{ on }">
+                            <VBtn v-on="on" depressed color="primary" class="no-radius left">
+                                <VIcon>mdi-playlist-remove</VIcon>
+                            </VBtn>
+                        </template>
+
+                        <span>Pause all</span>
+                    </VTooltip>
+
+                </VFlex>
+
+                <!-- Downloads -->
                 <VDataTable show-select
                             sort-by="status"
                             :headers="headers" :items="items" item-key="guid">
@@ -60,10 +134,11 @@
         components: {DownloadProgressSlot, DownloadStatusBadge},
         data() {
             return {
+                btns: null,
                 headers: [
                     {text: 'Status', value: 'status'},
                     {text: 'Name', value: 'name'},
-                    {text: 'Progress', value: 'progress'},
+                    {text: 'Progress', value: 'progress', sort: (a, b) => b - a},
                     {text: 'Downloaded Size', value: 'downloadedSize'},
                     {text: 'Total Size', value: 'totalSize'},
                     {text: 'Speed', value: 'speed'},
@@ -96,12 +171,20 @@
             }
         },
 
-        methods: {
-
-        }
+        methods: {}
     };
 </script>
 
 <style lang="scss" scoped>
+    .no-radius {
+        &.left {
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+        }
 
+        &.right {
+            border-bottom-right-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
 </style>

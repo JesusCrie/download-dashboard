@@ -1,5 +1,5 @@
 <template>
-    <VCard flat outlined>
+    <VCard outlined>
         <VLayout>
 
             <VFlex :style="inlineStyle" :class="iconContainerClasses" status-icon>
