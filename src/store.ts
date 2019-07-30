@@ -17,6 +17,16 @@ export interface StatusIndicator {
     cssClasses?: string;
 }
 
+export enum TrackStatus {
+    ACTIVE,
+    WAITING,
+    PAUSED,
+    ERROR,
+    COMPLETE,
+    REMOVED,
+    UNKNOWN
+}
+
 export interface Aria2TrackStatus {
     gid: string;
     status?: 'active' | 'waiting' | 'paused' | 'error' | 'complete' | 'removed';

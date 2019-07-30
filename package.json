@@ -11,8 +11,10 @@
   "dependencies": {
     "@types/vue-router": "^2.0.0",
     "core-js": "^2.6.5",
+    "numeral": "^2.0.6",
     "register-service-worker": "^1.6.2",
     "vue": "^2.6.10",
+    "vue-numeral-filter": "^1.1.1",
     "vue-router": "^3.0.3",
     "vuetify": "^2.0.2",
     "vuex": "^3.0.1"
