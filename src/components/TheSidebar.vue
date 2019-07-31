@@ -1,5 +1,5 @@
 <template>
-    <VNavigationDrawer app dark disable-route-watcher clipped
+    <VNavigationDrawer app dark disable-route-watcher
                        v-model="drawerVisible"
                        :mini-variant.sync="drawerMini">
 
@@ -21,8 +21,8 @@
             <VDivider/>
 
             <VListItem v-for="link in navigationLinks" :key="link.routeName"
-                       ripple link
-                       @click.stop="navigate(link.routeName)">
+                       ripple link exact
+                       :to.stop="{ name: link.routeName }">
 
                 <VListItemAction>
                     <VIcon>mdi-{{ link.iconName }}</VIcon>
@@ -67,12 +67,6 @@
             },
 
             ...mapState(['navigationLinks'])
-        },
-
-        methods: {
-            navigate(to) {
-                this.$router.push({name: to});
-            }
         }
     };
 </script>

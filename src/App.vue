@@ -22,7 +22,7 @@
     </VApp>
 </template>
 
-<script lang="ts">
+<script lang="js">
     import TheSidebar from '@/components/TheSidebar.vue';
     import TheAppBar from '@/components/TheAppBar.vue';
 
@@ -31,3 +31,22 @@
         components: {TheAppBar, TheSidebar}
     };
 </script>
+
+<!-- Global non scoped styles -->
+<style lang="scss">
+    .no-radius {
+        &.left {
+            border-bottom-left-radius: 0;
+            border-top-left-radius: 0;
+        }
+
+        &.right {
+            border-bottom-right-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+
+    .underline {
+        text-decoration: underline;
+    }
+</style>

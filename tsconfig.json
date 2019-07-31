@@ -15,7 +15,8 @@
       "vuetify",
       "vue",
       "vuex",
-      "vue-router"
+      "vue-router",
+      "vuelidate"
     ],
     "paths": {
       "@/*": [

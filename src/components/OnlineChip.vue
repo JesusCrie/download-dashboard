@@ -13,7 +13,7 @@
 
 <script lang="ts">
     export default {
-        name: 'OnlineBadge',
+        name: 'OnlineChip',
         props: {
             isOnline: {
                 type: Boolean,

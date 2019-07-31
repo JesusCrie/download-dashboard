@@ -15,7 +15,7 @@
     import { TrackStatus } from '@/store';
 
     export default {
-        name: 'DownloadStatusBadge',
+        name: 'DownloadStatusChip',
         props: {
             status: {
                 type: /* TrackStatus */ Number,

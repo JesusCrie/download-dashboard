@@ -1,29 +1,29 @@
 <template>
-    <VAppBar app flat dark color="primary" clipped-left>
+    <VAppBar app flat dark color="primary">
         <VAppBarNavIcon @click="toggleDrawerVisible()"/>
         <VToolbarTitle class="headline font-weight-light text-uppercase">Downloader Dashboard</VToolbarTitle>
         <VSpacer/>
 
         <!-- If big screen, display inline -->
         <template v-if="$vuetify.breakpoint.mdAndUp">
-            <OnlineBadge :is-online="isOnline"/>
+            <OnlineChip :is-online="isOnline"/>
         </template>
 
         <!-- If small screen, display under -->
-        <template v-slot:extension v-if="$vuetify.breakpoint.smAndDown">
+        <template v-if="$vuetify.breakpoint.smAndDown" v-slot:extension>
             <VSpacer/>
-            <OnlineBadge :is-online="isOnline"/>
+            <OnlineChip :is-online="isOnline"/>
         </template>
     </VAppBar>
 </template>
 
 <script lang="js">
     import { mapMutations, mapState } from 'vuex';
-    import OnlineBadge from '@/components/OnlineBadge';
+    import OnlineChip from '@/components/OnlineChip';
 
     export default {
         name: 'TheAppBar',
-        components: {OnlineBadge},
+        components: {OnlineChip},
         computed: {
             ...mapState(['isOnline'])
         },

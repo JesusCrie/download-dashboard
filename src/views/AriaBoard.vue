@@ -13,85 +13,23 @@
         <VLayout wrap :class="responsivePadding">
             <VFlex>
 
-                <VFlex class="mb-3">
-                    <!-- Add btn -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary">
-                                <VIcon>mdi-plus</VIcon>&nbsp;Add
-                            </VBtn>
-                        </template>
-
-                        <span>Add a new URI<br>to the queue</span>
-                    </VTooltip>
-
-                    <VDivider vertical class="mx-2"/>
-
-                    <!-- Start selected -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary" class="no-radius right">
-                                <VIcon>mdi-play</VIcon>
-                            </VBtn>
-                        </template>
-
-                        <span>Resume selected</span>
-                    </VTooltip>
-
-                    <!-- Pause selected -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary" tile>
-                                <VIcon>mdi-pause</VIcon>
-                            </VBtn>
-                        </template>
-
-                        <span>Pause selected</span>
-                    </VTooltip>
-
-                    <!-- Cancel selected -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary" class="no-radius left">
-                                <VIcon>mdi-stop</VIcon>
-                            </VBtn>
-                        </template>
-
-                        <span>Stop selected</span>
-                    </VTooltip>
-
-                    <VDivider vertical class="mx-2"/>
-
-                    <!-- Global start -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary" class="no-radius right">
-                                <VIcon>mdi-playlist-play</VIcon>
-                            </VBtn>
-                        </template>
-
-                        <span>Resume all</span>
-                    </VTooltip>
-
-                    <!-- Global pause -->
-                    <VTooltip top>
-                        <template v-slot:activator="{ on }">
-                            <VBtn v-on="on" depressed color="primary" class="no-radius left">
-                                <VIcon>mdi-playlist-remove</VIcon>
-                            </VBtn>
-                        </template>
-
-                        <span>Pause all</span>
-                    </VTooltip>
-
-                </VFlex>
+                <DownloadActions
+                        :selected="selectedItems.length"
+                        @new-uri="onNewUri"
+                        @play-selected="onPlaySelected"
+                        @play-all="onPlayAll"
+                        @pause-selected="onPauseSelected"
+                        @pause-all="onPauseAll"
+                        @stop-selected="onStopSelected"
+                        @stop-all="onStopAll"
+                />
 
                 <!-- Downloads -->
-                <VDataTable show-select
-                            sort-by="status"
-                            :headers="headers" :items="items" item-key="guid">
+                <VDataTable show-select sort-by="status"
+                            :headers="headers" :items="items" item-key="guid"
+                            v-model="selectedItems">
                     <template v-slot:item.status="{ item }">
-                        <DownloadStatusBadge :status="item.status"/>
+                        <DownloadStatusChip :status="item.status"/>
                     </template>
 
                     <template v-slot:item.progress="{ item }">
@@ -119,48 +57,61 @@
                     </template>
                 </VDataTable>
 
+                <VDialog persistent
+                         v-model="dialogOpen" :max-width="responsiveDialogWidth">
+                    <NewDownloadFormCard @cancel="dialogOpen = false"/>
+                </VDialog>
+
             </VFlex>
         </VLayout>
     </VContainer>
 </template>
 
 <script lang="js">
-    import DownloadStatusBadge from '@/components/DownloadStatusBadge';
+    import DownloadStatusChip from '@/components/DownloadStatusChip';
     import DownloadProgressSlot from '@/components/DownloadProgressSlot';
     import { TrackStatus } from '@/store';
+    import DownloadActions from '@/components/DownloadActions';
+    import NewDownloadFormCard from '@/components/NewDownloadFormCard';
 
     export default {
         name: 'AriaBoard',
-        components: {DownloadProgressSlot, DownloadStatusBadge},
-        data() {
-            return {
-                btns: null,
-                headers: [
-                    {text: 'Status', value: 'status'},
-                    {text: 'Name', value: 'name'},
-                    {text: 'Progress', value: 'progress', sort: (a, b) => b - a},
-                    {text: 'Downloaded Size', value: 'downloadedSize'},
-                    {text: 'Total Size', value: 'totalSize'},
-                    {text: 'Speed', value: 'speed'},
-                    {text: 'Elapsed Time', value: 'elapsed'},
-                    {text: 'Remaining', value: 'remaining'}
-                ],
+        components: {NewDownloadFormCard, DownloadActions, DownloadProgressSlot, DownloadStatusChip},
+        data: () => ({
+            headers: [
+                {text: 'Status', value: 'status'},
+                {text: 'Name', value: 'name'},
+                {text: 'Progress', value: 'progress', sort: (a, b) => b - a},
+                {text: 'Downloaded Size', value: 'downloadedSize'},
+                {text: 'Total Size', value: 'totalSize'},
+                {text: 'Speed', value: 'speed'},
+                {text: 'Elapsed Time', value: 'elapsed'},
+                {text: 'Remaining', value: 'remaining'}
+            ],
 
-                items: [
-                    {
-                        guid: 0,
-                        name: 'SomeTotallyLegallyDownloadedMovie.mkv', status: TrackStatus.ACTIVE,
-                        progress: 0.49, downloadedSize: 525709420, totalSize: 1072876367,
-                        speed: 1960000, elapsed: 35, remaining: 40
-                    }, {
-                        guid: 1,
-                        name: 'SomeLowQualityHentai.avi', status: TrackStatus.COMPLETE,
-                        progress: 1, downloadedSize: 204732003, totalSize: 204732003,
-                        speed: 15000, elapsed: 125, remaining: 0
-                    }
-                ]
-            };
-        },
+            items: [
+                {
+                    guid: 0,
+                    name: 'SomeTotallyLegallyDownloadedMovie.mkv', status: TrackStatus.ACTIVE,
+                    progress: 0.49, downloadedSize: 525709420, totalSize: 1072876367,
+                    speed: 1960000, elapsed: 35, remaining: 40
+                }, {
+                    guid: 1,
+                    name: 'SomeLowQualityHentai.avi', status: TrackStatus.COMPLETE,
+                    progress: 1, downloadedSize: 204732003, totalSize: 204732003,
+                    speed: 15000, elapsed: 125, remaining: 0
+                }
+            ],
+
+            selectedItems: [],
+            _dialogOpen: false,
+            get dialogOpen() {
+                return this._dialogOpen;
+            },
+            set dialogOpen(val) {
+                this._dialogOpen = val;
+            }
+        }),
 
         computed: {
             responsivePadding() {
@@ -168,23 +119,41 @@
                     'pa-4': this.$vuetify.breakpoint.mdAndUp,
                     'pa-2': this.$vuetify.breakpoint.smAndDown
                 };
+            },
+
+            responsiveDialogWidth() {
+                return this.$vuetify.breakpoint.mdAndUp ? '40vw' : '100vw';
             }
         },
 
-        methods: {}
+        methods: {
+            onNewUri() {
+                this.dialogOpen = true;
+            },
+
+            onPlaySelected() {
+
+            },
+
+            onPlayAll() {
+
+            },
+
+            onPauseSelected() {
+
+            },
+
+            onPauseAll() {
+
+            },
+
+            onStopSelected() {
+
+            },
+
+            onStopAll() {
+
+            }
+        }
     };
 </script>
-
-<style lang="scss" scoped>
-    .no-radius {
-        &.left {
-            border-bottom-left-radius: 0;
-            border-top-left-radius: 0;
-        }
-
-        &.right {
-            border-bottom-right-radius: 0;
-            border-top-right-radius: 0;
-        }
-    }
-</style>

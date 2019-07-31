@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import vueNumeralFilterInstaller from 'vue-numeral-filter';
-import { percentage, bytes, time } from '../filters/custom-numeral-filters';
+import { percentage, bytes, time } from '../filters/numeral-filters-overrides';
 
 Vue.use(vueNumeralFilterInstaller);
 
