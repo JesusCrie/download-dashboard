@@ -1,0 +1,9 @@
+{
+  "name": "download-dashboard-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "scripts": {
+  },
+  "license": "GPL-3.0"
+}

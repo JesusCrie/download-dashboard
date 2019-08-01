@@ -1,5 +1,5 @@
 <template>
-    <VNavigationDrawer app dark disable-route-watcher
+    <VNavigationDrawer app dark
                        v-model="drawerVisible"
                        :mini-variant.sync="drawerMini">
 
@@ -22,7 +22,8 @@
 
             <VListItem v-for="link in navigationLinks" :key="link.routeName"
                        ripple link exact
-                       :to.stop="{ name: link.routeName }">
+                       :to.stop="{ name: link.routeName }"
+                       @click.stop="">
 
                 <VListItemAction>
                     <VIcon>mdi-{{ link.iconName }}</VIcon>

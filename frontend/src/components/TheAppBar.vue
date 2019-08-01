@@ -1,5 +1,5 @@
 <template>
-    <VAppBar app flat dark color="primary">
+    <VAppBar app flat dark color="primary" :hide-on-scroll="hideOnScroll">
         <VAppBarNavIcon @click="toggleDrawerVisible()"/>
         <VToolbarTitle class="headline font-weight-light text-uppercase">Downloader Dashboard</VToolbarTitle>
         <VSpacer/>
@@ -25,7 +25,11 @@
         name: 'TheAppBar',
         components: {OnlineChip},
         computed: {
-            ...mapState(['isOnline'])
+            ...mapState(['isOnline']),
+
+            hideOnScroll() {
+		return this.$vuetify.breakpoint.smAndDown;
+            }
         },
 
         methods: {
