@@ -1,0 +1,408 @@
+openapi: 3.0.0
+# Added by API Auto Mocking Plugin
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/JesusCrie/DownloadDashboard/1.0.0
+info:
+  version: "1.0.0"
+  title: Download Dashboard
+  license:
+    name: GPL-3.0
+    url: https://github.com/JesusCrie/download-dashboard/blob/master/LICENSE
+security:
+  - jwt-token:
+      - read
+      - write
+tags:
+  - name: auth
+  - name: metrics
+  - name: aria2
+paths:
+
+  /auth:
+    post:
+      tags:
+        - auth
+      operationId: authCreate
+      summary: Acquire a JWT token
+      description: |
+        Acquire a JWT token in exchange of a password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthHolder'
+      responses:
+        200:
+          description: Authentification successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenHolder'
+          links:
+            refresh:
+              operationId: authRefresh
+        401:
+          description: Unauthorized, wrong password
+
+  /auth/refresh:
+    get:
+      tags:
+        - auth
+      security: []
+      operationId: authRefresh
+      summary: Refresh a JWT token
+      description: |
+        Acquire a new JWT token by providing a non-expired one.
+        The previous token will still be valid until its expiracy.
+      responses:
+        200:
+          description: Authentification successfull
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenHolder'
+        401:
+          description: Invalid token provided
+          links:
+            login:
+              operationId: authCreate
+
+  /health:
+    get:
+      tags:
+        - metrics
+      operationId: healthCheck
+      summary: Check health of service
+      description: |
+        Check the health of the service based on the response code.
+      responses:
+        204:
+          description: Ok
+        500:
+          description: Ko
+
+  /status:
+    get:
+      tags:
+        - metrics
+      security: []
+      operationId: metricsGet
+      summary: Gather metrics
+      description: |
+        Gather the status of the host.
+        Will respond with only the specified fields or all if not specified.
+      parameters:
+        - in: query
+          name: fields
+          description: Pass an optional list of fields to include
+          required: false
+          schema:
+            type: array
+            items:
+              enum:
+                - distro
+                - cpu
+                - memory
+                - netspeed
+                - disk
+                - aria
+                - aria-dl
+      responses:
+        200:
+          description: Host status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusValues'
+        400:
+          description: Bad input parameter
+        401:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+
+  /aria2/list:
+    get:
+      tags:
+        - aria2
+      security: []
+      operationId: ariaList
+      summary: List aria2 tracks
+      description: |
+        Query the downloads in progress on the host
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AriaTrack'
+        401:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+
+  /aria2/show/{gid}:
+    get:
+      tags:
+        - aria2
+      security: []
+      operationId: ariaShow
+      summary: Get a specific aria2 track
+      description: |
+        Query a track by its GID
+      parameters:
+        - in: path
+          name: gid
+          description: The GID of the download to query
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AriaTrack'
+        404:
+          description: Not found
+        401:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+
+  /aria2/new:
+    post:
+      tags:
+        - aria2
+      security: []
+      operationId: ariaNew
+      summary: Queue a new download
+      responses:
+        200:
+          description: Ok
+
+components:
+  securitySchemes:
+    jwt-token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    AuthHolder:
+      description: Holds sent auth info
+      type: object
+      properties:
+        password:
+          type: string
+          format: password
+          example: AVeryGoodPassword123
+      required:
+        - password
+
+    TokenHolder:
+      description: Holds received auth info
+      type: object
+      properties:
+        token:
+          type: string
+          format: password
+          example: xxxxx.yyyyy.zzzzz
+      required:
+        - token
+
+    StatusValues:
+      description: Represent the status of the host
+      type: object
+      properties:
+        distro:
+          description: Short name of the distro
+          type: string
+          example: raspbian
+        uptime:
+          description: Seconds since startup
+          type: integer
+          format: int64
+          example: 1564695250
+        cpu:
+          description: CPU load in percent
+          type: number
+          format: float
+          example: 0.45
+        memory:
+          description: Memory usage in percent
+          type: number
+          format: float
+          example: 0.12
+        netspeed:
+          description: Current network speed in bytes/s
+          type: integer
+          format: int64
+          example: 1500000
+        disk:
+          description: Partition usage in percent
+          type: number
+          format: float
+          example: 0.43
+        aria:
+          description: Aria2 version or null if offline
+          type: string
+          example: 'v1.2.3'
+        aria_active:
+          description: Amount of downloads in progress
+          type: number
+          example: 25
+
+    AriaTrack:
+      description: Represent an aria2 download (track)
+      type: object
+      properties:
+        gid:
+          description: Unique identifier used by aria2
+          type: string
+          minLength: 16
+          maxLength: 16
+          example: 2089b05ecca3d829
+        status:
+          description: Current status of the download
+          type: string
+          enum:
+            - active
+            - waiting
+            - paused
+            - error
+            - complete
+            - removed
+          example: active
+        dir:
+          description: Directory where the download will be saved
+          type: string
+          example: /some/path/to/folder
+        files:
+          description: Files composing the download (for multi torrents), usually only one element
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AriaFile'
+        size_total:
+          description: Total size in bytes
+          type: integer
+          format: int64
+          example: 1750000000
+        size_completed:
+          description: Downloaded size in bytes
+          type: integer
+          format: int64
+          example: 1000000000
+        piece_amount:
+          description: The amount of pieces
+          type: integer
+          format: int32
+          example: 10
+        piece_size:
+          description: The size of the pieces in bytes
+          type: integer
+          format: int64
+          example: 10000000
+        bitfield:
+          description: Representation of the progress piece by piece
+          type: string
+          format: byte
+          example: 0000000
+        connection_amount:
+          description: Amount of connections used for this track
+          type: integer
+          format: int32
+          example: 2
+        speed_down:
+          description: Download speed in bytes/s
+          type: integer
+          format: int64
+          example: 1500000
+        elapsed_time:
+          description: Cumulated amount of seconds downloading
+          type: integer
+          format: int64
+          example: 5400
+        error:
+          description: The eventual error, only if stopped/completed
+          type: object
+          properties:
+            error_code:
+              description: Error code, equivalent to the EXIT_CODE
+              type: integer
+              format: int32
+              example: 3
+            error_message:
+              description: Error message associated with error code
+              type: string
+              example: Not found
+          required:
+            - error_code
+            - error_message
+      required:
+        - gid
+        - status
+        - dir
+        - files
+        - size_total
+        - size_completed
+        - piece_amount
+        - piece_size
+        - bitfield
+        - connection_amount
+        - speed_down
+        - elapsed_time
+
+    AriaFile:
+      description: Represent a file from a download
+      type: object
+      properties:
+        index:
+          description: Index of file in the download, starts at 1
+          type: integer
+          format: int32
+          example: 1
+        path:
+          description: Absolute file path
+          type: string
+          example: /some/path/to/file.txt
+        uris:
+          description: URIs used for this file
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AriaUri'
+      required:
+        - index
+        - path
+        - uris
+
+    AriaUri:
+      description: Represent an URI
+      type: object
+      properties:
+        uri:
+          description: The URI
+          type: string
+          example: http://example.com/some/file.txt
+        status:
+          description: Whether this URI is used or queued
+          type: string
+          enum:
+            - used
+            - waiting
+          example: used
+      required:
+        - uri
+        - status
