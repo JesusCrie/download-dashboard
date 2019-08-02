@@ -3,6 +3,8 @@ openapi: 3.0.0
 servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/JesusCrie/DownloadDashboard/1.0.0
+  - description: Localhost API
+    url: http://localhost:8000
 info:
   version: "1.0.0"
   title: Download Dashboard
@@ -42,8 +44,10 @@ paths:
           links:
             refresh:
               operationId: authRefresh
-        401:
+        403:
           description: Unauthorized, wrong password
+        422:
+          description: Malformed payload
 
   /auth/refresh:
     get:
@@ -62,7 +66,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenHolder'
-        401:
+        403:
           description: Invalid token provided
           links:
             login:
@@ -79,7 +83,7 @@ paths:
       responses:
         204:
           description: Ok
-        500:
+        503:
           description: Ko
 
   /status:
@@ -92,6 +96,7 @@ paths:
       description: |
         Gather the status of the host.
         Will respond with only the specified fields or all if not specified.
+        Invalid fields will be ignored.
       parameters:
         - in: query
           name: fields
@@ -117,7 +122,7 @@ paths:
                 $ref: '#/components/schemas/StatusValues'
         400:
           description: Bad input parameter
-        401:
+        403:
           description: Forbidden
           links:
             login:
@@ -141,11 +146,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AriaTrack'
-        401:
+        403:
           description: Forbidden
           links:
             login:
               operationId: authCreate
+        503:
+          description: Aria is not started
 
   /aria2/show/{gid}:
     get:
@@ -175,7 +182,7 @@ paths:
                 $ref: '#/components/schemas/AriaTrack'
         404:
           description: Not found
-        401:
+        403:
           description: Forbidden
           links:
             login:
@@ -206,6 +213,15 @@ paths:
           links:
             show:
               operationId: ariaShow
+        403:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+        422:
+          description: Malformed payload
+        503:
+          description: Aria isn't started
 
 components:
   securitySchemes:
