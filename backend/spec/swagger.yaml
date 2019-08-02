@@ -10,7 +10,7 @@ info:
     name: GPL-3.0
     url: https://github.com/JesusCrie/download-dashboard/blob/master/LICENSE
 security:
-  - jwt-token:
+  - jwt_token:
       - read
       - write
 tags:
@@ -162,8 +162,10 @@ paths:
           description: The GID of the download to query
           required: true
           schema:
-            type: integer
-            example: 1
+            type: string
+            minLength: 16
+            maxLength: 16
+            example: 2089b05ecca3d829
       responses:
         200:
           description: Ok
@@ -186,19 +188,33 @@ paths:
       security: []
       operationId: ariaNew
       summary: Queue a new download
+      description: |
+        Queue a new download with a list of URIs and an optional option parameters.
+        Supports HTTP(S)/FTP/magnet URIs, see the option object for auth and trackers.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AriaTrackDef'
       responses:
-        200:
-          description: Ok
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AriaTrack'
+          links:
+            show:
+              operationId: ariaShow
 
 components:
   securitySchemes:
-    jwt-token:
+    jwt_token:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
   schemas:
-
     AuthHolder:
       description: Holds sent auth info
       type: object
@@ -363,6 +379,130 @@ components:
         - connection_amount
         - speed_down
         - elapsed_time
+
+    AriaTrackDef:
+      description: Represent the information needed to queue a new track
+      type: object
+      properties:
+        uris:
+          description: A list of URIs pointing to the same resource; if a magnet URI, only the first will be used
+          type: array
+          minItems: 1
+          items:
+            type: string
+            example: https://example.com/file.txt
+        options:
+          $ref: '#/components/schemas/AriaTrackOptions'
+        position:
+          description: The position of the track in the queue; 0 means on the top
+          type: integer
+          format: int32
+          minimum: 0
+          example: 0
+      required:
+        - uris
+
+    AriaTrackOptions:
+      description: The option to specify for one track
+      type: object
+      properties:
+        dir:
+          description: The directory to put the file to
+          type: string
+          example: /some/directory
+        out:
+          description: File name of the downloaded file, reltaive to dir
+          type: string
+          example: myFile.txt
+        auto_file_renaming:
+          description: Rename the file if it already exists
+          type: boolean
+          default: true
+        max_conn_per_server:
+          description: Maxiumum connection to one server
+          type: integer
+          format: int32
+          default: 1
+          minimum: 0
+        max_speed:
+          description: Maximum download limit in bytes/s, 0 for unlimited
+          type: integer
+          format: int64
+          default: 0
+          pattern: '^[0-9]+[KM]$'
+        max_tries:
+          description: Maximum amount of retries after failure, 0 for unlimited
+          type: integer
+          format: int32
+          default: 5
+        piece_length:
+          description: Set the piece length in bytes
+          type: string
+          pattern: '^[0-9]+[KM]$'
+          default: 5M
+        pause:
+          description: Pause on added
+          type: boolean
+          default: false
+        integrity:
+          description: Provide a checksum of the file to check its integrity
+          type: object
+          properties:
+            type:
+              type: string
+              example: sha-1
+            digest:
+              type: string
+              example: 0192ba11326fe2298c8cb4de616f4d4140213838
+          required:
+            - type
+            - digest
+        user_agent:
+          description: The user agent to use
+          type: string
+          default: aria2/$VERSION
+          example: Chrome/75.0.3770.142
+        headers:
+          description: Append additional headers
+          type: array
+          items:
+            description: Header name/value pair
+            type: object
+            additionalProperties:
+              type: string
+          example:
+            'X-Header': some value
+            'Authentification': Bearer 123456789
+        ftp:
+          description: FTP auth information
+          type: object
+          properties:
+            user:
+              type: string
+              default: anonymous
+            passwd:
+              type: string
+              format: password
+              default: ARIA2USER@
+          required:
+            - user
+            - passwd
+        http:
+          description: HTTP basic auth info
+          type: object
+          properties:
+            user:
+              type: string
+            passwd:
+              type: string
+          required:
+            - user
+            - passwd
+        bt_trackers:
+          description: An array of BitTorrent tracker's announce URI
+          type: array
+          items:
+            type: string
 
     AriaFile:
       description: Represent a file from a download
