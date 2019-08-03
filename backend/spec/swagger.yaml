@@ -1,10 +1,10 @@
 openapi: 3.0.0
 # Added by API Auto Mocking Plugin
 servers:
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/JesusCrie/DownloadDashboard/1.0.0
   - description: Localhost API
     url: http://localhost:8000
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/JesusCrie/DownloadDashboard/1.0.0
 info:
   version: "1.0.0"
   title: Download Dashboard
@@ -26,9 +26,11 @@ paths:
       tags:
         - auth
       operationId: authCreate
+      security: []
       summary: Acquire a JWT token
       description: |
-        Acquire a JWT token in exchange of a password
+        Acquire a JWT token in exchange of a password.
+        The token will last 1 week.
       requestBody:
         content:
           application/json:
@@ -53,12 +55,11 @@ paths:
     get:
       tags:
         - auth
-      security: []
       operationId: authRefresh
       summary: Refresh a JWT token
       description: |
         Acquire a new JWT token by providing a non-expired one.
-        The previous token will still be valid until its expiracy.
+        The new token will have a lifespan of 1 week. No infinite tokens can be granted from this endpoint.
       responses:
         200:
           description: Authentification successfull
@@ -77,6 +78,7 @@ paths:
       tags:
         - metrics
       operationId: healthCheck
+      security: []
       summary: Check health of service
       description: |
         Check the health of the service based on the response code.
@@ -90,7 +92,6 @@ paths:
     get:
       tags:
         - metrics
-      security: []
       operationId: metricsGet
       summary: Gather metrics
       description: |
@@ -132,7 +133,6 @@ paths:
     get:
       tags:
         - aria2
-      security: []
       operationId: ariaList
       summary: List aria2 tracks
       description: |
@@ -158,7 +158,6 @@ paths:
     get:
       tags:
         - aria2
-      security: []
       operationId: ariaShow
       summary: Get a specific aria2 track
       description: |
@@ -192,7 +191,6 @@ paths:
     post:
       tags:
         - aria2
-      security: []
       operationId: ariaNew
       summary: Queue a new download
       description: |
@@ -442,8 +440,7 @@ components:
           minimum: 0
         max_speed:
           description: Maximum download limit in bytes/s, 0 for unlimited
-          type: integer
-          format: int64
+          type: string
           default: 0
           pattern: '^[0-9]+[KM]$'
         max_tries:

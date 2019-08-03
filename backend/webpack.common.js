@@ -17,11 +17,7 @@ module.exports = {
     ],
     module: {
         rules: [
-            {
-                test: /\.ts$/,
-                loader: 'ts-loader',
-                exclude: /node_modules/
-            },
+            // Screw ts checking, let the IDE handle it
             {
                 test: /\.[jt]s$/,
                 loader: 'babel-loader',
@@ -30,10 +26,10 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts', '.js', '.mjs']
     },
     output: {
-        filename: 'main.js',
+        filename: '[name].js',
         path: path.join(__dirname, 'dist')
     }
 };
