@@ -4,7 +4,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 module.exports = {
     entry: {
-        main: './src/main.ts'
+        main: './src/main.js'
     },
     target: 'node',
     externals: [nodeExternals()],
@@ -17,7 +17,6 @@ module.exports = {
     ],
     module: {
         rules: [
-            // Screw ts checking, let the IDE handle it
             {
                 test: /\.[jt]s$/,
                 loader: 'babel-loader',
@@ -26,7 +25,7 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.ts', '.js', '.mjs']
+        extensions: ['.js', '.mjs', '.json']
     },
     output: {
         filename: '[name].js',

@@ -12,7 +12,7 @@ info:
     name: GPL-3.0
     url: https://github.com/JesusCrie/download-dashboard/blob/master/LICENSE
 security:
-  - jwt_token:
+  - jwtToken:
       - read
       - write
 tags:
@@ -30,19 +30,31 @@ paths:
       summary: Acquire a JWT token
       description: |
         Acquire a JWT token in exchange of a password.
-        The token will last 1 week.
+        A refresh token will also be supplied.
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthHolder'
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: password
+                  example: AVeryGoodPassword123
+              required: [password]
       responses:
         200:
           description: Authentification successfull
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenHolder'
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/JwtToken'
+                  refreshToken:
+                    $ref: '#/components/schemas/JwtToken'
+                required: [token]
           links:
             refresh:
               operationId: authRefresh
@@ -50,23 +62,40 @@ paths:
           description: Unauthorized, wrong password
         422:
           description: Malformed payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableError'
 
   /auth/refresh:
-    get:
+    post:
       tags:
         - auth
       operationId: authRefresh
       summary: Refresh a JWT token
       description: |
-        Acquire a new JWT token by providing a non-expired one.
-        The new token will have a lifespan of 1 week. No infinite tokens can be granted from this endpoint.
+        Acquire a new JWT token by providing a refresh token.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  $ref: '#/components/schemas/JwtToken'
+              required:
+                - refresh_token
       responses:
         200:
           description: Authentification successfull
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenHolder'
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/JwtToken'
+                required: [token]
         403:
           description: Invalid token provided
           links:
@@ -110,10 +139,10 @@ paths:
                 - distro
                 - cpu
                 - memory
-                - netspeed
+                - netSpeed
                 - disk
                 - aria
-                - aria-dl
+                - ariaActive
       responses:
         200:
           description: Host status
@@ -218,38 +247,69 @@ paths:
               operationId: authCreate
         422:
           description: Malformed payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableError'
         503:
           description: Aria isn't started
 
 components:
   securitySchemes:
-    jwt_token:
+    jwtToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
   schemas:
-    AuthHolder:
-      description: Holds sent auth info
+    UnprocessableError:
+      description: Sent with a 403 status code
       type: object
       properties:
-        password:
+        error:
+          type: boolean
+          example: true
+        code:
+          type: integer
+          example: 403
+        message:
           type: string
-          format: password
-          example: AVeryGoodPassword123
-      required:
-        - password
+          example: Unprocessable entity
+        name:
+          type: string
+          example: JsonSchemaValidationError
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              keyword:
+                type: string
+              dataPath:
+                type: string
+              schemaPath:
+                type: string
+              params:
+                type: object
+                additionalProperties:
+                  anyOf:
+                    - type: string
+                    - type: number
+                    - type: boolean
+              message:
+                type: string
+            required:
+              - keyword
+              - dataPath
+              - schemaPath
+              - params
+              - message
 
-    TokenHolder:
-      description: Holds received auth info
-      type: object
-      properties:
-        token:
-          type: string
-          format: password
-          example: xxxxx.yyyyy.zzzzz
-      required:
-        - token
+    JwtToken:
+      description: A JWT auth token.
+      type: string
+      format: password
+      example: xxxxx.yyyyy.zzzzz
 
     StatusValues:
       description: Represent the status of the host
@@ -274,7 +334,7 @@ components:
           type: number
           format: float
           example: 0.12
-        netspeed:
+        netSpeed:
           description: Current network speed in bytes/s
           type: integer
           format: int64
@@ -285,12 +345,15 @@ components:
           format: float
           example: 0.43
         aria:
-          description: Aria2 version or null if offline
-          type: string
+          description: Aria2 version or false if offline
+          oneOf:
+            - type: string
+            - type: boolean
           example: 'v1.2.3'
-        aria_active:
+        ariaActive:
           description: Amount of downloads in progress
-          type: number
+          type: integer
+          format: int32
           example: 25
 
     AriaTrack:
@@ -324,22 +387,22 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/AriaFile'
-        size_total:
+        sizeTotal:
           description: Total size in bytes
           type: integer
           format: int64
           example: 1750000000
-        size_completed:
+        sizeCompleted:
           description: Downloaded size in bytes
           type: integer
           format: int64
           example: 1000000000
-        piece_amount:
+        pieceAmount:
           description: The amount of pieces
           type: integer
           format: int32
           example: 10
-        piece_size:
+        pieceSize:
           description: The size of the pieces in bytes
           type: integer
           format: int64
@@ -349,17 +412,17 @@ components:
           type: string
           format: byte
           example: 0000000
-        connection_amount:
+        connectionAmount:
           description: Amount of connections used for this track
           type: integer
           format: int32
           example: 2
-        speed_down:
+        speedDown:
           description: Download speed in bytes/s
           type: integer
           format: int64
           example: 1500000
-        elapsed_time:
+        elapsedTime:
           description: Cumulated amount of seconds downloading
           type: integer
           format: int64
@@ -368,31 +431,31 @@ components:
           description: The eventual error, only if stopped/completed
           type: object
           properties:
-            error_code:
+            code:
               description: Error code, equivalent to the EXIT_CODE
               type: integer
               format: int32
               example: 3
-            error_message:
+            message:
               description: Error message associated with error code
               type: string
               example: Not found
           required:
-            - error_code
-            - error_message
+            - code
+            - message
       required:
         - gid
         - status
         - dir
         - files
-        - size_total
-        - size_completed
-        - piece_amount
-        - piece_size
+        - sizeTotal
+        - sizeCompleted
+        - pieceAmount
+        - pieceSize
         - bitfield
-        - connection_amount
-        - speed_down
-        - elapsed_time
+        - connectionAmount
+        - speedDown
+        - elapsedTime
 
     AriaTrackDef:
       description: Represent the information needed to queue a new track
@@ -428,27 +491,27 @@ components:
           description: File name of the downloaded file, reltaive to dir
           type: string
           example: myFile.txt
-        auto_file_renaming:
+        autoFileRenaming:
           description: Rename the file if it already exists
           type: boolean
           default: true
-        max_conn_per_server:
+        maxConnectionsPerServer:
           description: Maxiumum connection to one server
           type: integer
           format: int32
           default: 1
           minimum: 0
-        max_speed:
+        maxSpeed:
           description: Maximum download limit in bytes/s, 0 for unlimited
           type: string
           default: 0
           pattern: '^[0-9]+[KM]$'
-        max_tries:
+        maxTries:
           description: Maximum amount of retries after failure, 0 for unlimited
           type: integer
           format: int32
           default: 5
-        piece_length:
+        pieceLength:
           description: Set the piece length in bytes
           type: string
           pattern: '^[0-9]+[KM]$'
@@ -470,7 +533,7 @@ components:
           required:
             - type
             - digest
-        user_agent:
+        userAgent:
           description: The user agent to use
           type: string
           default: aria2/$VERSION
@@ -511,7 +574,7 @@ components:
           required:
             - user
             - passwd
-        bt_trackers:
+        btTrackers:
           description: An array of BitTorrent tracker's announce URI
           type: array
           items:
@@ -535,27 +598,18 @@ components:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/AriaUri'
+            type: object
+            properties:
+              uri:
+                type: string
+                example: http://example.com/file.txt
+              status:
+                type: string
+                enum: [used, waiting]
+            required:
+              - uri
+              - status
       required:
         - index
         - path
         - uris
-
-    AriaUri:
-      description: Represent an URI
-      type: object
-      properties:
-        uri:
-          description: The URI
-          type: string
-          example: http://example.com/some/file.txt
-        status:
-          description: Whether this URI is used or queued
-          type: string
-          enum:
-            - used
-            - waiting
-          example: used
-      required:
-        - uri
-        - status
