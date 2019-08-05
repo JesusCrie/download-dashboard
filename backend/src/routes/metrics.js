@@ -1,6 +1,6 @@
 import express from 'express';
-import { validate } from '../validator';
-import schemas from '../schemas/schemas';
+import statusService from '../services/statusService';
+import authMiddleware from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
@@ -8,8 +8,17 @@ router.get('/health', (req, res) => {
     res.status(204).send();
 });
 
-router.get('/status', validate({query: schemas.statusFields}), (req, res) => {
-    res.json(req.query);
+router.get('/status', authMiddleware, (req, res) => {
+    res.json({
+        distro: statusService.distribution,
+        uptime: statusService.uptime,
+        cpu: statusService.cpuLoad,
+        memory: statusService.memoryLoad,
+        netSpeed: statusService.networkDownloadSpeed,
+        disk: statusService.diskUsage,
+        aria: statusService.ariaVersion,
+        ariaActive: statusService.ariaActive
+    });
 });
 
 export default router;

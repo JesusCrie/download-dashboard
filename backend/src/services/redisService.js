@@ -5,8 +5,24 @@ const REFRESH_TOKEN_KEY = 'refreshTokens';
 
 export class RedisService {
 
-    constructor(client) {
-        this.client = client;
+    constructor() {
+        this.client = redis.createClient(+(process.env.REDIS_PORT || 6379));
+
+        // Query simple key to check connection
+        this.client.get('__status__', (err, reply) => {
+            if (err) {
+                console.error('[Redis]: ERROR, redis seems to be offline !');
+                throw err;
+            }
+
+            console.log('[Redis] Connected !');
+        });
+    }
+
+    stop() {
+        return new Promise(resolve => {
+            this.client.quit(resolve);
+        });
     }
 
     registerRefreshToken(token) {
@@ -41,20 +57,6 @@ export class RedisService {
             this.client.srem(REFRESH_TOKEN_KEY, expired);
         });
     }
-
-    stop() {
-        this.client.quit();
-    }
 }
 
-const redisClient = redis.createClient(+(process.env.REDIS_PORT || 6379));
-const client = new RedisService(redisClient);
-
-// Query simple key to check connection
-redisClient.get('__status__', (err, reply) => {
-    if (err) {
-        throw err;
-    }
-});
-
-export default client;
+export default new RedisService();

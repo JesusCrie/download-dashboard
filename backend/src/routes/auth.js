@@ -9,7 +9,11 @@ const router = express.Router();
 router.post('/', validate({body: schemas.auth}), (req, res) => {
 
     if (!authService.checkPassword(req.body.password)) {
-        res.status(403).end();
+        res.status(403).json({
+            error: true,
+            code: 400,
+            message: 'Authentication failed'
+        });
         return;
     }
 

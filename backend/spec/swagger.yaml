@@ -125,24 +125,7 @@ paths:
       summary: Gather metrics
       description: |
         Gather the status of the host.
-        Will respond with only the specified fields or all if not specified.
         Invalid fields will be ignored.
-      parameters:
-        - in: query
-          name: fields
-          description: Pass an optional list of fields to include
-          required: false
-          schema:
-            type: array
-            items:
-              enum:
-                - distro
-                - cpu
-                - memory
-                - netSpeed
-                - disk
-                - aria
-                - ariaActive
       responses:
         200:
           description: Host status
@@ -150,8 +133,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StatusValues'
-        400:
-          description: Bad input parameter
         403:
           description: Forbidden
           links:
@@ -355,6 +336,15 @@ components:
           type: integer
           format: int32
           example: 25
+      required:
+        - distro
+        - uptime
+        - cpu
+        - memory
+        - netSpeed
+        - disk
+        - aria
+        - ariaActive
 
     AriaTrack:
       description: Represent an aria2 download (track)
