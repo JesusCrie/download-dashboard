@@ -1,10 +1,11 @@
 import express from 'express';
-import authService from '../services/authService';
 import { validate } from '../validator';
 import schemas from '../schemas/schemas';
+import serviceRegister from '../services/serviceManager';
 
 
 const router = express.Router();
+const {authService} = serviceRegister;
 
 router.post('/', validate({body: schemas.auth}), (req, res) => {
 

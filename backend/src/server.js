@@ -1,14 +1,27 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import * as serviceManager from './services/serviceManager';
 import authRoutes from './routes/auth';
 import metricsRoutes from './routes/metrics';
-import redisService from './services/redisService';
-import statusService from './services/statusService';
-import ariaService from './services/ariaService';
 import { notFoundMiddleware, validationFailedMiddleware } from './middlewares/commonMiddlewares';
 import cors from 'cors';
+import baseLogger from './baseLogger';
 
-export const run = () => {
+const logger = baseLogger.scope('App____');
+
+export const run = async () => {
+    logger.start('App starting');
+
+    // Load and start services
+    try {
+        await serviceManager.load();
+    } catch (e) {
+        logger.error('Service manager failure, exiting');
+        process.exit(1);
+        return;
+    }
+
+    logger.pending('Setting up web server');
     const app = express();
 
     // Altering middleware
@@ -22,28 +35,27 @@ export const run = () => {
     app.use(validationFailedMiddleware,
         notFoundMiddleware);
 
-    // Setup shutdown hook for graceful shutdown
-    const shutdownHook = async () => {
-        // Status service
-        await statusService.stop();
-        console.log('[Status] Stopped');
-
-        // Redis service
-        await redisService.stop();
-        console.log('[Redis] Disconnected');
-
-        // Aria service
-        const ariaExit = await ariaService.stop();
-        console.log(`[Aria] Stopped with code ${ariaExit.code}`);
-
-        console.log('[App] Stopped');
-        process.exit(0);
-    };
-
+    // Setup shutdown hooks for graceful shutdown
     process.once('SIGHUP', shutdownHook);
     process.once('SIGINT', shutdownHook);
     process.once('SIGTERM', shutdownHook);
 
     const port = process.env.PORT;
-    app.listen(port, () => console.log(`[Express] Started on port ${port} !`));
+    app.listen(port, () => logger.success(`App ready at http://localhost:${port} !`));
+};
+
+const shutdownHook = async () => {
+    logger.pending('Shutdown initiated');
+
+    // Shutdown services
+    try {
+        await serviceManager.unload();
+    } catch (e) {
+        logger.error('Service manager failure, exiting');
+        process.exit(1);
+        return;
+    }
+
+    logger.success('App stopped !');
+    process.exit(0);
 };

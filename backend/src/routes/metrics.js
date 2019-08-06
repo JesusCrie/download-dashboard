@@ -1,8 +1,9 @@
 import express from 'express';
-import statusService from '../services/statusService';
 import authMiddleware from '../middlewares/authMiddleware';
+import serviceRegister from '../services/serviceManager';
 
 const router = express.Router();
+const {statusService} = serviceRegister;
 
 router.get('/health', (req, res) => {
     res.status(204).send();

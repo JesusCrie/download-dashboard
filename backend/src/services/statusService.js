@@ -1,10 +1,13 @@
 import * as si from 'systeminformation';
-import ariaService from './ariaService';
+import baseLogger from '../baseLogger';
 
-class StatusService {
+const logger = baseLogger.scope('Status_');
 
-    static #networkInterface = process.env.STATUS_NETWORK_INTERFACE;
-    static #diskPartition = process.env.STATUS_DISK_PARTITION;
+export class StatusService {
+
+    #ariaService;
+    #networkInterface = process.env.STATUS_NETWORK_INTERFACE;
+    #diskPartition = process.env.STATUS_DISK_PARTITION;
 
     #collectLoopId;
 
@@ -17,21 +20,24 @@ class StatusService {
     #ariaVersion;
     #ariaActive;
 
-    constructor() {
-        console.log('[Status] Starting...');
+    constructor(config, ariaService) {
+        this.#networkInterface = config.networkInterface;
+        this.#diskPartition = config.diskPartition;
+        this.#ariaService = ariaService;
+    }
 
+    async start() {
         // Static stats
-        si.osInfo().then(info => this.#distribution = info.distro);
+        await si.osInfo().then(info => this.#distribution = info.distro);
 
-        // Start collecting stats 5s from now
-        setTimeout(() => {
-            this.#collectLoopId = setInterval(this.#collectStats.bind(this), 1000);
-            console.log('[Status] Started !');
-        }, 5_000);
+        // Start collector
+        this.#collectLoopId = setInterval(this.#collectStats.bind(this), 1_000);
+        logger.complete('Started !');
     }
 
     async stop() {
         clearInterval(this.#collectLoopId);
+        logger.complete('Cleanup done !');
     }
 
     async #collectStats() {
@@ -41,13 +47,13 @@ class StatusService {
         const memoryInfo = await si.mem();
         this.#memoryLoad = 1 - (memoryInfo.available / memoryInfo.total);
 
-        this.#networkDlSpeed = (await si.networkStats(StatusService.#networkInterface))[0].rx_sec;
+        this.#networkDlSpeed = (await si.networkStats(this.#networkInterface))[0].rx_sec;
         this.#diskUsage = (await si.fsSize())
-            .filter(d => d.fs === StatusService.#diskPartition)[0]
+            .filter(d => d.fs === this.#diskPartition)[0]
             .use;
 
-        this.#ariaVersion = ariaService.version;
-        this.#ariaActive = ariaService.activeDownloads;
+        this.#ariaVersion = this.#ariaService.version;
+        this.#ariaActive = this.#ariaService.activeDownloads;
     }
 
     get distribution() {
@@ -82,5 +88,3 @@ class StatusService {
         return this.#ariaActive;
     }
 }
-
-export default new StatusService();

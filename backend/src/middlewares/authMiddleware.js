@@ -1,4 +1,7 @@
-import authService, { AuthService } from '../services/authService';
+import { AuthService } from '../services/authService';
+import serviceRegister from '../services/serviceManager';
+
+const {authService} = serviceRegister;
 
 export default (req, res, next) => {
     const reject = () => {

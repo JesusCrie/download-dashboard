@@ -1,37 +1,46 @@
 import * as redis from 'redis';
 import * as jwt from 'jsonwebtoken';
+import { promisify } from 'util';
+import baseLogger from '../baseLogger';
+
+const logger = baseLogger.scope('Redis__');
 
 const REFRESH_TOKEN_KEY = 'refreshTokens';
 
 export class RedisService {
 
-    constructor() {
-        this.client = redis.createClient(+(process.env.REDIS_PORT || 6379));
+    #client;
 
-        // Query simple key to check connection
-        this.client.get('__status__', (err, reply) => {
-            if (err) {
-                console.error('[Redis]: ERROR, redis seems to be offline !');
-                throw err;
-            }
+    start() {
+        return new Promise((resolve, reject) => {
+            this.#client = redis.createClient(+(process.env.REDIS_PORT || 6379));
 
-            console.log('[Redis] Connected !');
+            // Error handler
+            this.#client.on('error', (err) => {
+                reject(err);
+            });
+
+            // Success handler
+            this.#client.on('connect', () => {
+                resolve();
+            });
+        }).then(() => {
+            logger.complete('Connected !');
         });
     }
 
-    stop() {
-        return new Promise(resolve => {
-            this.client.quit(resolve);
-        });
+    async stop() {
+        await promisify(this.#client.quit).bind(this.#client)();
+        logger.success('Successfully disconnected !');
     }
 
     registerRefreshToken(token) {
-        this.client.sadd(REFRESH_TOKEN_KEY, token);
+        this.#client.sadd(REFRESH_TOKEN_KEY, token);
     }
 
     checkRefreshTokenExists(token) {
         return new Promise((resolve, reject) => {
-            this.client.sismember(REFRESH_TOKEN_KEY, token, (err, reply) => {
+            this.#client.sismember(REFRESH_TOKEN_KEY, token, (err, reply) => {
                 if (err) {
                     reject(err);
                 }
@@ -43,7 +52,7 @@ export class RedisService {
     }
 
     cleanupRefreshTokens() {
-        this.client.smembers(REFRESH_TOKEN_KEY, (err, reply) => {
+        this.#client.smembers(REFRESH_TOKEN_KEY, (err, reply) => {
             if (err) {
                 console.error(err);
                 return;
@@ -54,9 +63,7 @@ export class RedisService {
                 return +decoded.exp <= (+new Date() / 1000);
             });
 
-            this.client.srem(REFRESH_TOKEN_KEY, expired);
+            this.#client.srem(REFRESH_TOKEN_KEY, expired);
         });
     }
 }
-
-export default new RedisService();
