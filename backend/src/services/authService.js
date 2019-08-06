@@ -1,6 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 
 export class AuthService {
+    static ID = 'auth';
 
     #config;
     #redisService;
@@ -34,7 +35,7 @@ export class AuthService {
 
     createToken() {
         const payload = {
-            created: +Date()
+            created: Date.now()
         };
 
         return jwt.sign(payload, this.#config.secret, {
@@ -45,7 +46,7 @@ export class AuthService {
 
     createRefreshToken() {
         const payload = {
-            created: +Date()
+            created: Date.now()
         };
 
         const token = jwt.sign(payload, this.#config.secret, {

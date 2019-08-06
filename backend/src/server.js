@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import * as serviceManager from './services/serviceManager';
 import authRoutes from './routes/auth';
 import metricsRoutes from './routes/metrics';
-import { notFoundMiddleware, validationFailedMiddleware } from './middlewares/commonMiddlewares';
+import { errorMiddleware, notFoundMiddleware, validationFailedMiddleware } from './middlewares/commonMiddlewares';
 import cors from 'cors';
 import baseLogger from './baseLogger';
 
@@ -25,15 +25,17 @@ export const run = async () => {
     const app = express();
 
     // Altering middleware
-    app.use(cors(), bodyParser.json());
+    app.use(cors());
+    app.use(bodyParser.json());
 
     // Routes
-    app.use('/auth', authRoutes);
     app.use(metricsRoutes);
+    app.use('/auth', authRoutes);
 
     // Fallback middleware
-    app.use(validationFailedMiddleware,
-        notFoundMiddleware);
+    app.use(validationFailedMiddleware);
+    app.use(errorMiddleware);
+    app.use(notFoundMiddleware);
 
     // Setup shutdown hooks for graceful shutdown
     process.once('SIGHUP', shutdownHook);

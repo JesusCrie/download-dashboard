@@ -24,7 +24,12 @@ export async function load() {
 
     const ariaTracks = new AriaTrackService();
 
-    const aria = new AriaService(ariaTracks);
+    const aria = new AriaService({
+        port: +process.env.ARIA_PORT || 6800,
+        secret: process.env.ARIA_SECRET || '',
+        session: process.env.ARIA_SESSION_FILE || './aria2.session.gz',
+        conf: process.env.ARIA_CONF || '$XDG_CONFIG_HOME/aria2/aria2.conf'
+    }, ariaTracks);
 
     const status = new StatusService({
         networkInterface: process.env.STATUS_NETWORK_INTERFACE,
@@ -47,11 +52,7 @@ export async function load() {
     await starter(status);
 
     // Register them
-    register('redis', redis);
-    register('auth', auth);
-    register('ariaTracks', ariaTracks);
-    register('aria', aria);
-    register('status', status);
+    register(redis, auth, ariaTracks, aria, status);
 
     logger.complete('Finished loading services !');
 }
@@ -74,12 +75,28 @@ export async function unload() {
 }
 
 const serviceRegister = {};
-const register = (name, service) => {
-    Object.defineProperty(serviceRegister, name, {
-        value: service,
-        enumerable: true
-    });
+const register = (...services) => {
+    if (services.length === 0) {
+        // noop
+    } else if (services.length === 1) {
+        const service = services[0];
+        Object.defineProperty(serviceRegister, service.constructor.ID, {
+            value: service,
+            enumerable: true
+        });
+    } else {
+        for (const service in services) {
+            // Recursion
+            register(services[service]);
+        }
+    }
 };
+
+export function createGetter(name) {
+    return () => {
+        return serviceRegister[name];
+    };
+}
 
 const errorHandler = (service, err) => {
     logger.error(`Service '${service.constructor.name}' failed to start !`);

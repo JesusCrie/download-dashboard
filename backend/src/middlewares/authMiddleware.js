@@ -1,7 +1,7 @@
 import { AuthService } from '../services/authService';
-import serviceRegister from '../services/serviceManager';
+import * as serviceRegister from '../services/serviceManager';
 
-const {authService} = serviceRegister;
+const authService = serviceRegister.createGetter(AuthService.ID);
 
 export default (req, res, next) => {
     const reject = () => {
@@ -24,15 +24,12 @@ export default (req, res, next) => {
         const token = AuthService.extractToken(authHeader, true);
 
         // Check token
-        if (!authService.verifyToken(token)) {
-            console.log('token invalid');
+        if (!authService().verifyToken(token)) {
             return reject();
         }
 
     } catch (e) {
         // Malformed header
-        console.log('malformed header');
-        console.error(e);
         return reject();
     }
 

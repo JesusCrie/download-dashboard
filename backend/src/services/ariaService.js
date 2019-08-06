@@ -1,75 +1,74 @@
 import childProcess from 'child_process';
-import * as fs from 'fs';
+import fs from 'fs';
+import tcpPortUsed from 'tcp-port-used';
 import Aria2 from 'aria2';
-import signale from 'signale';
 import baseLogger from '../baseLogger';
 
 const logger = baseLogger.scope('Aria___');
 
+const ariaPortCheckTimeoutMs = 5_000;
+
 export class AriaService {
+    static ID = 'aria';
+
+    #config;
 
     #ariaTrackService;
     #ariaClient;
 
     #ariaProcess;
-    #ariaProcessRunning = false;
 
-    constructor(ariaTrackService) {
+    constructor(opts, ariaTrackService) {
+        this.#config = opts;
         this.#ariaTrackService = ariaTrackService;
     }
 
-    start() {
+    async start() {
         const opts = [
             '--enable-rpc',
-            `--rpc-listen-port=${process.env.ARIA_PORT}`,
-            `--rpc-secret=${process.env.ARIA_SECRET}`,
-            `--save-session=${process.env.ARIA_SESSION_FILE}`
+            `--rpc-listen-port=${this.#config.port}`,
+            `--rpc-secret=${this.#config.secret}`,
+            `--stop-with-process=${process.pid}`,
+            `--save-session=${this.#config.session}`
         ];
 
-        if (process.env.ARIA_CONF) {
-            opts.push(`--conf=${process.env.ARIA_CONF}`);
+        if (this.#config.conf) {
+            opts.push(`--conf=${this.#config.conf}`);
         }
 
-        if (fs.existsSync(process.env.ARIA_SESSION_FILE)) {
-            opts.push(`--input-file=${process.env.ARIA_SESSION_FILE}`);
+        if (this.#config.session && fs.existsSync(this.#config.session)) {
+            opts.push(`--input-file=${this.#config.session}`);
+        }
+
+        // Check the port
+        const {inUse} = await tcpPortUsed.check(this.#config.port);
+        if (inUse) {
+            throw new Error(`Port ${this.#config.port} is already taken !`);
         }
 
         // Spawn process
-        this.#ariaProcess = childProcess.spawn('aria2c', opts, {killSignal: 'SIGINT'});
-        this.#ariaProcessRunning = true;
-        this.#ariaProcess.on('exit', () => this.#ariaProcessRunning = false);
+        this.#ariaProcess = childProcess.spawn('/usr/bin/aria2c', opts);
         logger.info(`Process spawned: PID ${this.#ariaProcess.pid} !`);
 
+        // Wait until ready to connect
+        await tcpPortUsed.waitUntilUsed(this.#config.port, 100, ariaPortCheckTimeoutMs);
+
         // Create client
-        /*this.#ariaClient = new AriaRpcClient({
-            host: 'localhost', port: process.env.ARIA_PORT,
-            secret: process.env.ARIA_SECRET
-        });*/
+        this.#ariaClient = new AriaRpcClient({
+            port: this.#config.port,
+            secret: this.#config.secret
+        });
+        this.#ariaClient.connect();
 
         logger.complete('Ready !');
     }
 
-    stop() {
-        return new Promise(async (resolve, reject) => {
-            if (this.#ariaClient) {
-                await this.#ariaClient.stop();
-                logger.complete('Client disconnected !');
-            }
-
-            this.#ariaProcess.once('exit', (code, signal) => resolve({code, signal}));
-            this.#ariaProcess.once('error', err => reject(err));
-            this.#ariaProcess.kill('SIGINT');
-        }).then(({code}) => {
-            logger.complete(`Stopped with code ${code} !`);
-        });
-    }
-
-    get isRunning() {
-        return this.#ariaProcessRunning;
+    async stop() {
+        logger.info('Aria2 will close itself with this process');
     }
 
     get version() {
-        return this.isRunning ? this.#ariaClient?.version : false;
+        return this.#ariaClient?.version;
     }
 
     get activeDownloads() {
@@ -84,24 +83,29 @@ class AriaRpcClient {
 
     constructor(opts) {
         this.#rpcClient = new Aria2(opts);
+    }
 
-        // Open socket and handshake
-        //this.#rpcClient.open().then(() => {
-        this.#rpcClient.multicall([['getVersion'], ['getSessionInfo']]).then(([version, session]) => {
-            this.#version = version.version;
-            signale.info({
-                ...logOpts,
-                message: `[RPC Aria] Client connected (v${version.version}), session ${session.sessionId}`
-            });
-        }).catch(err => {
-            signale.error({...logOpts, message: err.message});
-        });
-        //}).catch(console.error);
+    async connect() {
+        // Test connection
+        const version = await this.call('getVersion');
+        this.#version = version.version;
+
+        logger.complete(`Client connected (v${version.version}) !`);
     }
 
     async stop() {
-        await this.#rpcClient.close();
-        await this.#rpcClient.call('shutdown');
+        await this.call('shutdown');
+        logger.complete('Client disconnected !');
+    }
+
+    async call(...args) {
+        try {
+            return await this.#rpcClient.call(...args);
+        } catch (e) {
+            logger.error(`Call failed, args: ${args}`);
+            logger.error(e);
+            throw e;
+        }
     }
 
     get version() {

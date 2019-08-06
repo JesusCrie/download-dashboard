@@ -1,4 +1,5 @@
 export class AriaTrackService {
+    static ID = 'ariaTracks';
 
     #ariaTracks;
 

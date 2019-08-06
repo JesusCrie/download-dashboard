@@ -4,6 +4,7 @@ import baseLogger from '../baseLogger';
 const logger = baseLogger.scope('Status_');
 
 export class StatusService {
+    static ID = 'status';
 
     #ariaService;
     #networkInterface = process.env.STATUS_NETWORK_INTERFACE;
@@ -45,7 +46,7 @@ export class StatusService {
         this.#cpuLoad = (await si.currentLoad()).currentload;
 
         const memoryInfo = await si.mem();
-        this.#memoryLoad = 1 - (memoryInfo.available / memoryInfo.total);
+        this.#memoryLoad = (1 - (memoryInfo.available / memoryInfo.total)) * 100;
 
         this.#networkDlSpeed = (await si.networkStats(this.#networkInterface))[0].rx_sec;
         this.#diskUsage = (await si.fsSize())

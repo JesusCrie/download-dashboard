@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "webpack --config webpack.dev.js",
     "dev:watch": "webpack --config webpack.dev.js --watch",
-    "dev:start": "nodemon --signal SIGHUP dist/main.js",
+    "dev:start": "DEBUG=express:* nodemon --signal SIGHUP dist/main.js",
     "watch": "npm-run-all -p dev:watch dev:start",
     "build": "webpack --config webpack.prod.js",
     "prestart": "npm run build",
@@ -23,7 +23,8 @@
     "jsonwebtoken": "^8.5.1",
     "redis": "^2.8.0",
     "signale": "^1.4.0",
-    "systeminformation": "^4.14.4"
+    "systeminformation": "^4.14.4",
+    "tcp-port-used": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

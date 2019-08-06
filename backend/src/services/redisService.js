@@ -8,6 +8,7 @@ const logger = baseLogger.scope('Redis__');
 const REFRESH_TOKEN_KEY = 'refreshTokens';
 
 export class RedisService {
+    static ID = 'redis';
 
     #client;
 
