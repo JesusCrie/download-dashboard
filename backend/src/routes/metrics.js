@@ -11,15 +11,17 @@ router.get('/health', (req, res) => {
 });
 
 router.get('/status', authMiddleware, (req, res) => {
-    res.json({
-        distro: statusService().distribution,
-        uptime: statusService().uptime,
-        cpu: statusService().cpuLoad,
-        memory: statusService().memoryLoad,
-        netSpeed: statusService().networkDownloadSpeed,
-        disk: statusService().diskUsage,
-        aria: statusService().ariaVersion,
-        ariaActive: statusService().ariaActive
+    statusService().collectStats().then(stats => {
+        res.json({
+            distro: stats.distribution,
+            uptime: stats.uptime,
+            cpu: stats.cpuLoad,
+            memory: stats.memoryLoad,
+            netSpeed: stats.networkDownloadSpeed,
+            disk: stats.diskUsage,
+            aria: stats.ariaVersion,
+            ariaActive: stats.ariaActive
+        });
     });
 });
 

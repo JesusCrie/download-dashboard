@@ -2,19 +2,16 @@ import express from 'express';
 import { validate } from '../validator';
 import schemas from '../schemas/schemas';
 import * as serviceRegister from '../services/serviceManager';
-import { AuthService } from '../services/authService';
+import { AuthenticationError, AuthService } from '../services/authService';
+import baseLogger from '../baseLogger';
 
 const router = express.Router();
 const authService = serviceRegister.createGetter(AuthService.ID);
 
-router.post('/', validate({body: schemas.auth}), (req, res) => {
+router.post('/', validate({body: schemas.auth}), (req, res, next) => {
 
     if (!authService().checkPassword(req.body.password)) {
-        res.status(403).json({
-            error: true,
-            code: 400,
-            message: 'Authentication failed'
-        });
+        next(new AuthenticationError());
     } else {
         res.json({
             token: authService().createToken(),
@@ -23,16 +20,14 @@ router.post('/', validate({body: schemas.auth}), (req, res) => {
     }
 });
 
-router.post('/refresh', validate({body: schemas.authRefresh}), async (req, res) => {
+router.post('/refresh', validate({body: schemas.authRefresh}), (req, res, next) => {
 
-    if (!await authService().verifyRefreshToken(req.body.refreshToken)) {
-        res.status(403).end();
-        return;
-    }
-
-    res.json({
-        token: authService().createToken()
-    });
+    // If the check fails, an error is thrown and catch later
+    authService().verifyRefreshToken(req.body.refreshToken).then(() => {
+        res.json({
+            token: authService().createToken()
+        });
+    }).catch(next);
 });
 
 export default router;

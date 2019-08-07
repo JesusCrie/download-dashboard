@@ -9,17 +9,7 @@ export class StatusService {
     #ariaService;
     #networkInterface = process.env.STATUS_NETWORK_INTERFACE;
     #diskPartition = process.env.STATUS_DISK_PARTITION;
-
-    #collectLoopId;
-
     #distribution;
-    #uptime;
-    #cpuLoad;
-    #memoryLoad;
-    #networkDlSpeed;
-    #diskUsage;
-    #ariaVersion;
-    #ariaActive;
 
     constructor(config, ariaService) {
         this.#networkInterface = config.networkInterface;
@@ -30,31 +20,24 @@ export class StatusService {
     async start() {
         // Static stats
         await si.osInfo().then(info => this.#distribution = info.distro);
-
-        // Start collector
-        this.#collectLoopId = setInterval(this.#collectStats.bind(this), 1_000);
         logger.complete('Started !');
     }
 
     async stop() {
-        clearInterval(this.#collectLoopId);
-        logger.complete('Cleanup done !');
+        logger.complete('Stopped !');
     }
 
-    async #collectStats() {
-        this.#uptime = si.time().uptime;
-        this.#cpuLoad = (await si.currentLoad()).currentload;
-
-        const memoryInfo = await si.mem();
-        this.#memoryLoad = (1 - (memoryInfo.available / memoryInfo.total)) * 100;
-
-        this.#networkDlSpeed = (await si.networkStats(this.#networkInterface))[0].rx_sec;
-        this.#diskUsage = (await si.fsSize())
-            .filter(d => d.fs === this.#diskPartition)[0]
-            .use;
-
-        this.#ariaVersion = this.#ariaService.version;
-        this.#ariaActive = this.#ariaService.activeDownloads;
+    async collectStats() {
+        return {
+            distribution: this.distribution,
+            uptime: this.uptime,
+            cpuLoad: await this.cpuLoad,
+            memoryLoad: await this.memoryLoad,
+            networkDownloadSpeed: await this.networkDownloadSpeed,
+            diskUsage: await this.diskUsage,
+            ariaVersion: await this.ariaVersion,
+            ariaActive: await this.ariaActive
+        }
     }
 
     get distribution() {
@@ -62,30 +45,34 @@ export class StatusService {
     }
 
     get uptime() {
-        return this.#uptime;
+        return si.time().uptime;
     }
 
     get cpuLoad() {
-        return this.#cpuLoad;
+        return si.currentLoad().then(d => d.currentload);
     }
 
     get memoryLoad() {
-        return this.#memoryLoad;
+        return si.mem().then(d => {
+            return (1 - (d.available / d.total)) * 100;
+        });
     }
 
     get networkDownloadSpeed() {
-        return this.#networkDlSpeed;
+        return si.networkStats(this.#networkInterface).then(d => d[0].rx_sec);
     }
 
     get diskUsage() {
-        return this.#diskUsage;
+        return si.fsSize().then(d => {
+            return d.find(disk => disk.fs === this.#diskPartition).use;
+        });
     }
 
     get ariaVersion() {
-        return this.#ariaVersion;
+        return this.#ariaService.version;
     }
 
     get ariaActive() {
-        return this.#ariaActive;
+        return this.#ariaService.activeDownloads;
     }
 }

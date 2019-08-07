@@ -1,4 +1,5 @@
 import { ValidationError } from 'express-json-validator-middleware';
+import { AuthenticationError } from '../services/authService';
 
 export const validationFailedMiddleware = (err, req, res, next) => {
     // Schema validation failed
@@ -11,7 +12,20 @@ export const validationFailedMiddleware = (err, req, res, next) => {
             errors: err.validationErrors.body
         });
     } else {
-        next();
+        next(err);
+    }
+};
+
+export const unauthorizedMiddleware = (err, req, res, next) => {
+    // Auth error
+    if (err instanceof AuthenticationError) {
+        res.status(403).json({
+            error: true,
+            code: 403,
+            message: 'Unauthorized'
+        });
+    } else {
+        next(err);
     }
 };
 
@@ -20,7 +34,7 @@ export const errorMiddleware = (err, req, res, next) => {
     res.status(500).json({
         error: true,
         code: 500,
-        message: `An error occurred: ${err.message}`,
+        message: `An error occurred: ${err.message}`
     });
 };
 

@@ -3,7 +3,12 @@ import bodyParser from 'body-parser';
 import * as serviceManager from './services/serviceManager';
 import authRoutes from './routes/auth';
 import metricsRoutes from './routes/metrics';
-import { errorMiddleware, notFoundMiddleware, validationFailedMiddleware } from './middlewares/commonMiddlewares';
+import {
+    errorMiddleware,
+    notFoundMiddleware,
+    unauthorizedMiddleware,
+    validationFailedMiddleware
+} from './middlewares/commonMiddlewares';
 import cors from 'cors';
 import baseLogger from './baseLogger';
 
@@ -34,6 +39,7 @@ export const run = async () => {
 
     // Fallback middleware
     app.use(validationFailedMiddleware);
+    app.use(unauthorizedMiddleware);
     app.use(errorMiddleware);
     app.use(notFoundMiddleware);
 

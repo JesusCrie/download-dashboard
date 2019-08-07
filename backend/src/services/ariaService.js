@@ -68,11 +68,18 @@ export class AriaService {
     }
 
     get version() {
-        return this.#ariaClient?.version;
+        return tcpPortUsed.check(this.#config.port)
+            .then(inUse => {
+                if (inUse) {
+                    return this.#ariaClient.version;
+                } else {
+                    return null;
+                }
+            });
     }
 
     get activeDownloads() {
-        return this.#ariaTrackService.activeTracks;
+        return Promise.resolve(this.#ariaTrackService.activeTracks);
     }
 }
 
@@ -93,11 +100,6 @@ class AriaRpcClient {
         logger.complete(`Client connected (v${version.version}) !`);
     }
 
-    async stop() {
-        await this.call('shutdown');
-        logger.complete('Client disconnected !');
-    }
-
     async call(...args) {
         try {
             return await this.#rpcClient.call(...args);
@@ -109,6 +111,6 @@ class AriaRpcClient {
     }
 
     get version() {
-        return this.#version;
+        return this.call('getVersion').then(v => v.version);
     }
 }

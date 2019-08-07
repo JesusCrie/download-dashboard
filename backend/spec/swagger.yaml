@@ -299,32 +299,32 @@ components:
         distro:
           description: Short name of the distro
           type: string
-          example: raspbian
+          example: Raspbian
         uptime:
           description: Seconds since startup
           type: integer
           format: int64
-          example: 1564695250
+          example: 54687
         cpu:
           description: CPU load in percent
           type: number
           format: float
-          example: 0.45
+          example: 45.0556464213
         memory:
           description: Memory usage in percent
           type: number
           format: float
-          example: 0.12
+          example: 15.65472164
         netSpeed:
           description: Current network speed in bytes/s
-          type: integer
-          format: int64
-          example: 1500000
+          type: number
+          format: float
+          example: 5400.657684314
         disk:
           description: Partition usage in percent
           type: number
           format: float
-          example: 0.43
+          example: 43.52
         aria:
           description: Aria2 version or false if offline
           oneOf:

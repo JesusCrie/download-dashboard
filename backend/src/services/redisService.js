@@ -27,6 +27,10 @@ export class RedisService {
             });
         }).then(() => {
             logger.complete('Connected !');
+        }).then(() => {
+            return this.cleanupRefreshTokens()
+        }).then(() => {
+            logger.success('Expired refresh tokens cleaned up');
         });
     }
 
@@ -53,7 +57,7 @@ export class RedisService {
     }
 
     cleanupRefreshTokens() {
-        this.#client.smembers(REFRESH_TOKEN_KEY, (err, reply) => {
+        return this.#client.smembers(REFRESH_TOKEN_KEY, (err, reply) => {
             if (err) {
                 console.error(err);
                 return;

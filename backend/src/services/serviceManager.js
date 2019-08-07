@@ -22,7 +22,7 @@ export async function load() {
         lifespanRefresh: process.env.JWT_LIFESPAN_REFRESH || '7d'
     }, redis);
 
-    const ariaTracks = new AriaTrackService();
+    const ariaTracks = new AriaTrackService(redis);
 
     const aria = new AriaService({
         port: +process.env.ARIA_PORT || 6800,

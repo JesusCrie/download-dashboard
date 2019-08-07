@@ -1,5 +1,13 @@
 import * as jwt from 'jsonwebtoken';
 
+export class AuthenticationError extends Error {
+    constructor(message) {
+        super();
+        this.name = 'AuthenticationError';
+        this.message = message;
+    }
+}
+
 export class AuthService {
     static ID = 'auth';
 
@@ -67,7 +75,7 @@ export class AuthService {
 
             return true;
         } catch (e) {
-            return false;
+            throw new AuthenticationError(e?.message || e);
         }
     }
 
@@ -79,7 +87,8 @@ export class AuthService {
 
             return await this.#redisService.checkRefreshTokenExists(token);
         } catch (e) {
-            return false;
+            // Token invalid
+            throw new AuthenticationError(e?.message || e);
         }
     }
 }
