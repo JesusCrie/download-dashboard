@@ -1,5 +1,6 @@
 import childProcess from 'child_process';
 import fs from 'fs';
+import path from 'path';
 import tcpPortUsed from 'tcp-port-used';
 import Aria2 from 'aria2';
 import baseLogger from '../baseLogger';
@@ -13,19 +14,17 @@ export class AriaService {
 
     #config;
 
-    #ariaTrackService;
     #ariaClient;
-
     #ariaProcess;
 
-    constructor(opts, ariaTrackService) {
+    constructor(opts) {
         this.#config = opts;
-        this.#ariaTrackService = ariaTrackService;
     }
 
     async start() {
         const opts = [
             '--enable-rpc',
+            '--daemon', // To keep the process running when no downloads are in progress
             `--rpc-listen-port=${this.#config.port}`,
             `--rpc-secret=${this.#config.secret}`,
             `--stop-with-process=${process.pid}`,
@@ -37,7 +36,7 @@ export class AriaService {
         }
 
         if (this.#config.session && fs.existsSync(this.#config.session)) {
-            opts.push(`--input-file=${this.#config.session}`);
+            opts.push(`--input-file=${path.resolve(this.#config.session)}`);
         }
 
         // Check the port
@@ -47,7 +46,7 @@ export class AriaService {
         }
 
         // Spawn process
-        this.#ariaProcess = childProcess.spawn('/usr/bin/aria2c', opts);
+        this.#ariaProcess = childProcess.spawn('/usr/bin/aria2c', opts, {stdio: 'inherit'});
         logger.info(`Process spawned: PID ${this.#ariaProcess.pid} !`);
 
         // Wait until ready to connect
@@ -58,28 +57,31 @@ export class AriaService {
             port: this.#config.port,
             secret: this.#config.secret
         });
-        this.#ariaClient.connect();
-
-        logger.complete('Ready !');
+        await this.#ariaClient.connect();
     }
 
     async stop() {
+        await this.#ariaClient.disconnect();
         logger.info('Aria2 will close itself with this process');
     }
 
-    get version() {
+    call(...args) {
+        return this.#ariaClient.call(...args);
+    }
+
+    on(event, cb) {
+        return this.#ariaClient.on(event, cb);
+    }
+
+    version() {
         return tcpPortUsed.check(this.#config.port)
             .then(inUse => {
                 if (inUse) {
-                    return this.#ariaClient.version;
+                    return this.#ariaClient.version();
                 } else {
                     return null;
                 }
             });
-    }
-
-    get activeDownloads() {
-        return Promise.resolve(this.#ariaTrackService.activeTracks);
     }
 }
 
@@ -93,16 +95,24 @@ class AriaRpcClient {
     }
 
     async connect() {
+        await this.#rpcClient.open();
         // Test connection
         const version = await this.call('getVersion');
         this.#version = version.version;
 
-        logger.complete(`Client connected (v${version.version}) !`);
+        logger.info(`Client connected (v${version.version}) !`);
+
+        const session = await this.call('getSessionInfo');
+        logger.debug(`SessionID: ${session.sessionId}`);
+    }
+
+    disconnect() {
+        return this.#rpcClient.close();
     }
 
     async call(...args) {
         try {
-            return await this.#rpcClient.call(...args);
+            return this.#rpcClient.call(...args);
         } catch (e) {
             logger.error(`Call failed, args: ${args}`);
             logger.error(e);
@@ -110,7 +120,11 @@ class AriaRpcClient {
         }
     }
 
-    get version() {
+    on(event, cb) {
+        return this.#rpcClient.on(event, cb);
+    }
+
+    version() {
         return this.call('getVersion').then(v => v.version);
     }
 }

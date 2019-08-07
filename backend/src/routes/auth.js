@@ -3,7 +3,6 @@ import { validate } from '../validator';
 import schemas from '../schemas/schemas';
 import * as serviceRegister from '../services/serviceManager';
 import { AuthenticationError, AuthService } from '../services/authService';
-import baseLogger from '../baseLogger';
 
 const router = express.Router();
 const authService = serviceRegister.createGetter(AuthService.ID);

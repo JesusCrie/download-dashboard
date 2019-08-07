@@ -1,4 +1,7 @@
 import * as jwt from 'jsonwebtoken';
+import baseLogger from '../baseLogger';
+
+const logger = baseLogger.scope();
 
 export class AuthenticationError extends Error {
     constructor(message) {
@@ -19,15 +22,21 @@ export class AuthService {
         this.#redisService = redisService;
     }
 
-    start() {
-        return Promise.resolve();
-    }
-
-    stop() {
-        return Promise.resolve();
+    async start() {
+        this.#redisService.cleanupRefreshTokens()
+            .then(amount => {
+                amount && logger.info(`Cleaned ${amount} expired refresh tokens`);
+            })
+            .catch(e => {
+                logger.warn('Failed to cleanup refresh tokens');
+                logger.warn(`Cause: ${e?.message || e}`);
+            });
     }
 
     checkPassword(suppliedPassword) {
+        if (!this.#config.password)
+            return true;
+
         return suppliedPassword === this.#config.password;
     }
 

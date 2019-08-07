@@ -12,7 +12,7 @@ import {
 import cors from 'cors';
 import baseLogger from './baseLogger';
 
-const logger = baseLogger.scope('App____');
+const logger = baseLogger.scope('App');
 
 export const run = async () => {
     logger.start('App starting');
@@ -53,7 +53,8 @@ export const run = async () => {
 };
 
 const shutdownHook = async () => {
-    logger.pending('Shutdown initiated');
+    console.log();
+    logger.start('Shutdown initiated');
 
     // Shutdown services
     try {

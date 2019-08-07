@@ -20,6 +20,7 @@
     "dotenv": "^8.0.0",
     "express": "^4.17.1",
     "express-json-validator-middleware": "^2.0.0",
+    "figures": "^3.0.0",
     "jsonwebtoken": "^8.5.1",
     "redis": "^2.8.0",
     "signale": "^1.4.0",

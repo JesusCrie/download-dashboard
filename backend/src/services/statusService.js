@@ -6,37 +6,36 @@ const logger = baseLogger.scope('Status_');
 export class StatusService {
     static ID = 'status';
 
+    #config;
     #ariaService;
-    #networkInterface = process.env.STATUS_NETWORK_INTERFACE;
-    #diskPartition = process.env.STATUS_DISK_PARTITION;
+    #ariaTrackService;
     #distribution;
 
-    constructor(config, ariaService) {
-        this.#networkInterface = config.networkInterface;
-        this.#diskPartition = config.diskPartition;
+    constructor(config, ariaService, ariaTrackService) {
+        this.#config = config;
         this.#ariaService = ariaService;
+        this.#ariaTrackService = ariaTrackService;
     }
 
     async start() {
         // Static stats
         await si.osInfo().then(info => this.#distribution = info.distro);
-        logger.complete('Started !');
-    }
+        logger.info('Static stats collected');
 
-    async stop() {
-        logger.complete('Stopped !');
+        // Trigger this one time to prepare for the next call
+        await this.networkDownloadSpeed();
     }
 
     async collectStats() {
         return {
             distribution: this.distribution,
             uptime: this.uptime,
-            cpuLoad: await this.cpuLoad,
-            memoryLoad: await this.memoryLoad,
-            networkDownloadSpeed: await this.networkDownloadSpeed,
-            diskUsage: await this.diskUsage,
-            ariaVersion: await this.ariaVersion,
-            ariaActive: await this.ariaActive
+            cpuLoad: await this.cpuLoad(),
+            memoryLoad: await this.memoryLoad(),
+            networkDownloadSpeed: await this.networkDownloadSpeed(),
+            diskUsage: await this.diskUsage(),
+            ariaVersion: await this.ariaVersion(),
+            ariaActive: await this.ariaActive()
         }
     }
 
@@ -48,31 +47,31 @@ export class StatusService {
         return si.time().uptime;
     }
 
-    get cpuLoad() {
+    cpuLoad() {
         return si.currentLoad().then(d => d.currentload);
     }
 
-    get memoryLoad() {
+    memoryLoad() {
         return si.mem().then(d => {
             return (1 - (d.available / d.total)) * 100;
         });
     }
 
-    get networkDownloadSpeed() {
-        return si.networkStats(this.#networkInterface).then(d => d[0].rx_sec);
+    networkDownloadSpeed() {
+        return si.networkStats(this.#config.networkInterface).then(d => d[0].rx_sec);
     }
 
-    get diskUsage() {
+    diskUsage() {
         return si.fsSize().then(d => {
-            return d.find(disk => disk.fs === this.#diskPartition).use;
+            return d.find(disk => disk.fs === this.#config.diskPartition).use;
         });
     }
 
-    get ariaVersion() {
-        return this.#ariaService.version;
+    ariaVersion() {
+        return this.#ariaService.version();
     }
 
-    get ariaActive() {
-        return this.#ariaService.activeDownloads;
+    ariaActive() {
+        return this.#ariaTrackService.activeTracksCount();
     }
 }
