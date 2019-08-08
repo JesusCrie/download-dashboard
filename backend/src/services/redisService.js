@@ -53,6 +53,8 @@ export class RedisService {
             return promisify(func).bind(this.#client);
         };
 
+        this.clientGet = promisifyAndBind(this.#client.get);
+        this.clientSet = promisifyAndBind(this.#client.set);
         this.clientDel = promisifyAndBind(this.#client.del);
         this.clientSadd = promisifyAndBind(this.#client.sadd);
         this.clientSrem = promisifyAndBind(this.#client.srem);
@@ -101,6 +103,26 @@ export class RedisService {
         }
     }
 
+    async getTrackIndex() {
+        try {
+            return await this.clientSmembers(TRACKS_INDEX_KEY);
+        } catch (e) {
+            logger.error(e);
+            return [];
+        }
+    }
+
+    async getTrack(gid) {
+        try {
+            return RedisService.normalizeTrack({
+                gid, ...await this.clientHgetall(`${TRACKS_NAMESPACE}:${gid}`)
+            });
+        } catch (e) {
+            logger.error(e);
+            return {gid};
+        }
+    }
+
     async getTracks() {
         try {
             const ids = await this.clientSmembers(TRACKS_INDEX_KEY);
@@ -116,17 +138,6 @@ export class RedisService {
         } catch (e) {
             logger.error(e);
             return [];
-        }
-    }
-
-    async getTrack(gid) {
-        try {
-            return RedisService.normalizeTrack({
-                gid, ...await this.clientHgetall(`${TRACKS_NAMESPACE}:${gid}`)
-            });
-        } catch (e) {
-            logger.error(e);
-            return {gid};
         }
     }
 
@@ -176,8 +187,8 @@ export class RedisService {
 
     removeTracks(ids) {
         return Promise.all([
-            this.clientDel(ids.map(gid => `${TRACKS_NAMESPACE}:${gid}`)),
-            this.clientSrem(TRACKS_INDEX_KEY, ids)
+            this.clientDel(ids.map(gid => `${TRACKS_NAMESPACE}:${gid}`)), // Delete timestamps
+            this.clientSrem(TRACKS_INDEX_KEY, ids) // Delete from index
         ]);
     }
 

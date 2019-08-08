@@ -5,7 +5,7 @@ import tcpPortUsed from 'tcp-port-used';
 import Aria2 from 'aria2';
 import baseLogger from '../baseLogger';
 
-const logger = baseLogger.scope('Aria___');
+const logger = baseLogger.scope('Aria');
 
 const ariaPortCheckTimeoutMs = 5_000;
 
@@ -19,6 +19,7 @@ export class AriaService {
 
     constructor(opts) {
         this.#config = opts;
+        opts.session = path.resolve(opts.session);
     }
 
     async start() {
@@ -36,7 +37,7 @@ export class AriaService {
         }
 
         if (this.#config.session && fs.existsSync(this.#config.session)) {
-            opts.push(`--input-file=${path.resolve(this.#config.session)}`);
+            opts.push(`--input-file=${this.#config.session}`);
         }
 
         // Check the port

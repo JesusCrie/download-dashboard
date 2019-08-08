@@ -3,5 +3,6 @@ import authRefresh from './authRefresh';
 import ariaNew from './ariaNew'
 
 export default {
-    auth, authRefresh
+    auth, authRefresh,
+    ariaNew
 };

@@ -33,6 +33,7 @@ export class AriaTrackService {
             // Check if already in progress because otherwise we will never know
             if (dl.status === 'active') {
                 track.startedAt = Date.now() / 1000 | 0;
+                loggerStatus.active(dl.gid);
             }
 
             return track;
@@ -61,9 +62,6 @@ export class AriaTrackService {
     #onDownloadComplete([{gid}]) {
         this.computeAndPersistTrackElapsedTime(gid, true).then(() => {
             loggerStatus.complete(gid);
-
-            // Free memory
-            return this.call('purgeDownloadResult');
         });
     }
 
@@ -146,7 +144,18 @@ export class AriaTrackService {
         return +numActive;
     }
 
-    addUri(uris, option = null, position = null) {
+    async addUri(uris, options = undefined, position = undefined) {
+        let args = [uris];
 
+        if (position) {
+            args.push({}, position);
+        }
+
+        if (options) {
+            args[1] = options;
+        }
+
+        const gid = await this.call('addUri', ...args);
+        return await this.downloadByGid(gid);
     }
 }

@@ -2,21 +2,118 @@
   "type": "object",
   "properties": {
     "uris": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "minItems": 1
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      ]
     },
     "options": {
       "type": "object",
       "properties": {
-        "todo": true
+        "dir": {
+          "type": "string"
+        },
+        "out": {
+          "type": "string"
+        },
+        "autoFileRenaming": {
+          "type": "boolean"
+        },
+        "maxConnectionsPerServer": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxSpeed": {
+          "type": "string",
+          "pattern": "^[0-9]+[KkMm]$"
+        },
+        "maxTries": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pieceLength": {
+          "type": "string",
+          "pattern": "^[0-9]+[KkMm]$"
+        },
+        "pause": {
+          "type": "boolean"
+        },
+        "integrity": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "digest": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "digest"
+          ]
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "ftp": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "string"
+            },
+            "passwd": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "user",
+            "passwd"
+          ]
+        },
+        "http": {
+          "type": "object",
+          "properties": {
+            "user": {
+              "type": "string"
+            },
+            "passwd": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "user",
+            "passwd"
+          ]
+        },
+        "btTrackers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       }
     },
     "position": {
       "type": "integer",
       "minimum": 0
     }
-  }
+  },
+  "required": [
+    "uris"
+  ]
 }

@@ -212,12 +212,20 @@ paths:
             schema:
               $ref: '#/components/schemas/AriaTrackDef'
       responses:
-        201:
+        200:
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AriaTrack'
+                type: object
+                properties:
+                  gid:
+                    type: string
+                    minLength: 16
+                    maxLength: 16
+                    example: 2089b05ecca3d829
+                required:
+                  - gid
           links:
             show:
               operationId: ariaShow
@@ -232,6 +240,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnprocessableError'
+        503:
+          description: Aria isn't started
+
+  /aria2/purge:
+    get:
+      tags:
+        - aria2
+      operationId: ariaPurge
+      summary: Free memory by removing the idle tracks
+      description: |
+        Purge the completed/removed/errored tracks from the memory.
+      responses:
+        201:
+          description: Ok
+        403:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
         503:
           description: Aria isn't started
 
@@ -401,7 +428,7 @@ components:
           description: Representation of the progress piece by piece
           type: string
           format: byte
-          example: 0000000
+          example: ffffffff
         connectionAmount:
           description: Amount of connections used for this track
           type: integer
@@ -459,11 +486,13 @@ components:
       properties:
         uris:
           description: A list of URIs pointing to the same resource; if a magnet URI, only the first will be used
-          type: array
-          minItems: 1
-          items:
-            type: string
-            example: https://example.com/file.txt
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+              minItems: 1
+          example: https://example.com/file.txt
         options:
           $ref: '#/components/schemas/AriaTrackOptions'
         position:
@@ -501,7 +530,7 @@ components:
           description: Maximum download limit in bytes/s, 0 for unlimited
           type: string
           default: 0
-          pattern: '^[0-9]+[KM]$'
+          pattern: '^[0-9]+[KkMm]$'
         maxTries:
           description: Maximum amount of retries after failure, 0 for unlimited
           type: integer
@@ -510,7 +539,7 @@ components:
         pieceLength:
           description: Set the piece length in bytes
           type: string
-          pattern: '^[0-9]+[KM]$'
+          pattern: '^[0-9]+[KkMm]$'
           default: 5M
         pause:
           description: Pause on added
@@ -536,15 +565,13 @@ components:
           example: Chrome/75.0.3770.142
         headers:
           description: Append additional headers
-          type: array
-          items:
-            description: Header name/value pair
-            type: object
-            additionalProperties:
-              type: string
+          type: object
+          additionalProperties:
+            type: string
           example:
             'X-Header': some value
             'Authentification': Bearer 123456789
+
         ftp:
           description: FTP auth information
           type: object
