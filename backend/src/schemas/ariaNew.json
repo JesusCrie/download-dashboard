@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "properties": {
+    "uris": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "todo": true
+      }
+    },
+    "position": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

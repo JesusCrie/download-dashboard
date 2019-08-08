@@ -29,7 +29,8 @@ export class RedisService {
                 url: this.#config.url,
                 db: this.#config.db,
                 prefix: this.#config.prefix,
-                password: this.#config.password
+                password: this.#config.password,
+                string_numbers: false
             });
 
             // Error handler
@@ -106,9 +107,9 @@ export class RedisService {
 
             const tracks = [];
             for (const gid of ids) {
-                tracks.push({
+                tracks.push(RedisService.normalizeTrack({
                     gid, ...await this.clientHgetall(`${TRACKS_NAMESPACE}:${gid}`)
-                });
+                }));
             }
 
             return tracks;
@@ -120,11 +121,26 @@ export class RedisService {
 
     async getTrack(gid) {
         try {
-            return {gid, ...await this.clientHgetall(`${TRACKS_NAMESPACE}:${gid}`)};
+            return RedisService.normalizeTrack({
+                gid, ...await this.clientHgetall(`${TRACKS_NAMESPACE}:${gid}`)
+            });
         } catch (e) {
             logger.error(e);
             return {gid};
         }
+    }
+
+    static normalizeTrack(track) {
+        if (!track.gid) {
+            throw new TypeError('Track must have a GID !');
+        }
+
+        track.addedAt = +track.addedAt || 0;
+        track.startedAt = +track.startedAt || 0;
+        track.elapsedTime = +track.elapsedTime || 0;
+        track.completed = !!track.completed;
+
+        return track;
     }
 
     static prepareTrack(track) {

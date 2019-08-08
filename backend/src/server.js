@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import * as serviceManager from './services/serviceManager';
 import authRoutes from './routes/auth';
 import metricsRoutes from './routes/metrics';
+import ariaRoutes from './routes/aria';
 import {
     errorMiddleware,
     notFoundMiddleware,
@@ -30,18 +31,20 @@ export const run = async () => {
     const app = express();
 
     // Altering middleware
-    app.use(cors());
-    app.use(bodyParser.json());
+    app.use(cors(), bodyParser.json());
 
     // Routes
     app.use(metricsRoutes);
     app.use('/auth', authRoutes);
+    app.use('/aria2', ariaRoutes);
 
     // Fallback middleware
-    app.use(validationFailedMiddleware);
-    app.use(unauthorizedMiddleware);
-    app.use(errorMiddleware);
-    app.use(notFoundMiddleware);
+    app.use(
+        validationFailedMiddleware,
+        unauthorizedMiddleware,
+        errorMiddleware,
+        notFoundMiddleware
+    );
 
     // Setup shutdown hooks for graceful shutdown
     process.once('SIGHUP', shutdownHook);
@@ -49,7 +52,8 @@ export const run = async () => {
     process.once('SIGTERM', shutdownHook);
 
     const port = process.env.PORT;
-    app.listen(port, () => logger.success(`App ready at http://localhost:${port} !`));
+    app.listen(port, '127.0.0.1',
+        null, () => logger.success(`App ready at http://127.0.0.1:${port} !`));
 };
 
 const shutdownHook = async () => {

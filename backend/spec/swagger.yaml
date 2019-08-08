@@ -412,6 +412,11 @@ components:
           type: integer
           format: int64
           example: 1500000
+        addedAt:
+          description: Timestamp when the download was added
+          type: integer
+          format: int64
+          example: 1546300800
         elapsedTime:
           description: Cumulated amount of seconds downloading
           type: integer
@@ -445,6 +450,7 @@ components:
         - bitfield
         - connectionAmount
         - speedDown
+        - addedAt
         - elapsedTime
 
     AriaTrackDef:
