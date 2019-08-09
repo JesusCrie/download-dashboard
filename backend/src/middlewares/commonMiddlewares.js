@@ -1,5 +1,6 @@
 import { ValidationError } from 'express-json-validator-middleware';
 import { AuthenticationError } from '../services/authService';
+import { commonForbidden, commonNotFound } from '../commonPayload';
 
 export const validationFailedMiddleware = (err, req, res, next) => {
     // Schema validation failed
@@ -19,11 +20,7 @@ export const validationFailedMiddleware = (err, req, res, next) => {
 export const unauthorizedMiddleware = (err, req, res, next) => {
     // Auth error
     if (err instanceof AuthenticationError) {
-        res.status(403).json({
-            error: true,
-            code: 403,
-            message: 'Unauthorized'
-        });
+        res.status(403).json(commonForbidden);
     } else {
         next(err);
     }
@@ -41,8 +38,7 @@ export const errorMiddleware = (err, req, res, next) => {
 export const notFoundMiddleware = (req, res, next) => {
     // 404
     res.status(404).json({
-        error: true,
-        code: 404,
+        ...commonNotFound,
         message: 'Route not found'
     });
 };

@@ -101,6 +101,10 @@ paths:
           links:
             login:
               operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
 
   /health:
     get:
@@ -112,8 +116,22 @@ paths:
       description: |
         Check the health of the service based on the response code.
       responses:
-        204:
+        200:
           description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    default: 200
+                  message:
+                    type: string
+                    default: Ok
+                required:
+                  - code
+                  - message
         503:
           description: Ko
 
@@ -138,6 +156,50 @@ paths:
           links:
             login:
               operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+
+  /aria2/stats:
+    get:
+      tags:
+        - aria2
+      summary: Query the global stats
+      description: |
+        Retrieve the global stat of aria
+      operationId: ariaStat
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadSpeed:
+                    type: integer
+                    example: 1000000
+                  downloadActive:
+                    type: integer
+                    example: 2
+                  downloadWaiting:
+                    type: integer
+                    example: 5
+                  downloadStopped:
+                    type: integer
+                    example: 10
+                required:
+                  - downloadSpeed
+                  - downloadActive
+                  - downloadWaiting
+                  - downloadStopped
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
 
   /aria2/list:
     get:
@@ -161,8 +223,10 @@ paths:
           links:
             login:
               operationId: authCreate
-        503:
-          description: Aria is not started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
 
   /aria2/show/{gid}:
     get:
@@ -178,10 +242,7 @@ paths:
           description: The GID of the download to query
           required: true
           schema:
-            type: string
-            minLength: 16
-            maxLength: 16
-            example: 2089b05ecca3d829
+            $ref: '#/components/schemas/Gid'
       responses:
         200:
           description: Ok
@@ -191,11 +252,19 @@ paths:
                 $ref: '#/components/schemas/AriaTrack'
         404:
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
         403:
           description: Forbidden
           links:
             login:
               operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
 
   /aria2/new:
     post:
@@ -234,17 +303,129 @@ paths:
           links:
             login:
               operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
         422:
           description: Malformed payload
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UnprocessableError'
-        503:
-          description: Aria isn't started
+
+  /aria2/resume:
+    patch:
+      tags:
+        - aria2
+      operationId: ariaResume
+      summary: Resume a download (or all)
+      description: |
+        Resume the specified track or every track if the gid is omitted
+      parameters:
+        - in: query
+          name: gid
+          description: The gid of the track to resume
+          required: false
+          schema:
+            $ref: '#/components/schemas/Gid'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        403:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+  /aria2/pause:
+    patch:
+      tags:
+        - aria2
+      operationId: ariaPause
+      summary: Pause a track (or all)
+      description: |
+        Pause the designated track.
+      parameters:
+        - in: query
+          name: gid
+          description: The GID of the track to pause
+          required: false
+          schema:
+            $ref: '#/components/schemas/Gid'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        403:
+          description: Forbidden
+          links:
+            login:
+              operationId: authCreate
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        404:
+          description: Track not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+
+  /aria2/remove/{gid}:
+    delete:
+      tags:
+        - aria2
+      summary: Stop a track and removes it
+      description: |
+        Stop then remove a track from the download queue
+      parameters:
+        - in: path
+          name: gid
+          required: true
+          description: The GID of the track to remove
+          schema:
+            $ref: '#/components/schemas/Gid'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
 
   /aria2/purge:
-    get:
+    delete:
       tags:
         - aria2
       operationId: ariaPurge
@@ -252,15 +433,95 @@ paths:
       description: |
         Purge the completed/removed/errored tracks from the memory.
       responses:
-        201:
+        200:
           description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Ok
+                required:
+                  - code
+                  - message
         403:
           description: Forbidden
           links:
             login:
               operationId: authCreate
-        503:
-          description: Aria isn't started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+
+  /aria2/move/{gid}:
+    patch:
+      tags:
+        - aria2
+      summary: Move the track in the queue
+      operationId: ariaMove
+      parameters:
+        - in: path
+          name: gid
+          description: The GID of the track to move
+          required: true
+          schema:
+            $ref: '#/components/schemas/Gid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                position:
+                  type: integer
+                  example: 0
+                method:
+                  type: string
+                  enum:
+                    - SET
+                    - CUR
+                    - END
+                  example: SET
+              required:
+                - position
+                - method
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  position:
+                    type: integer
+                    example: 0
+                required:
+                  - position
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        422:
+          description: Unprocessable entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnprocessableError'
 
 components:
   securitySchemes:
@@ -312,6 +573,69 @@ components:
               - schemaPath
               - params
               - message
+      required:
+        - error
+        - code
+        - message
+        - name
+        - errors
+
+    ForbiddenError:
+      description: Triggered when not authenticated
+      type: object
+      properties:
+        error:
+          type: boolean
+          example: true
+        code:
+          type: integer
+          example: 403
+        message:
+          type: string
+          example: Forbidden
+      required:
+        - error
+        - code
+        - message
+
+    NotFoundError:
+      description: Not found payload
+      type: object
+      properties:
+        error:
+          type: boolean
+          example: true
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: Not found
+      required:
+        - error
+        - code
+        - message
+
+    OkResponse:
+      description: Ok
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Ok
+      required:
+        - code
+        - message
+
+    Gid:
+      description: An unique identifier for a track
+      type: string
+      minLength: 16
+      maxLength: 16
+      example: 2089b05ecca3d829
 
     JwtToken:
       description: A JWT auth token.

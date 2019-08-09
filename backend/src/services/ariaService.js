@@ -66,6 +66,7 @@ export class AriaService {
         logger.info('Aria2 will close itself with this process');
     }
 
+    /*async*/
     call(...args) {
         return this.#ariaClient.call(...args);
     }
@@ -74,7 +75,9 @@ export class AriaService {
         return this.#ariaClient.on(event, cb);
     }
 
+    /*async*/
     version() {
+        // Can be called when aria isn't running
         return tcpPortUsed.check(this.#config.port)
             .then(inUse => {
                 if (inUse) {
@@ -83,6 +86,16 @@ export class AriaService {
                     return null;
                 }
             });
+    }
+
+    /*async*/
+    globalStats() {
+        return this.call('getGlobalStat').then(stats => ({
+            downloadSpeed: +stats.downloadSpeed,
+            downloadActive: +stats.numActive,
+            downloadWaiting: +stats.numWaiting,
+            downloadStopped: +stats.numStoppedTotal
+        }));
     }
 }
 

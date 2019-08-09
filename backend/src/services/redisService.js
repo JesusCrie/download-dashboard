@@ -149,7 +149,7 @@ export class RedisService {
         track.addedAt = +track.addedAt || 0;
         track.startedAt = +track.startedAt || 0;
         track.elapsedTime = +track.elapsedTime || 0;
-        track.completed = !!track.completed;
+        track.completed = !!+track.completed; // ("0" -> false, "1" -> true)
 
         return track;
     }
@@ -163,9 +163,16 @@ export class RedisService {
             track.addedAt = Date.now() / 1000 | 0;
         }
 
+        if (track.completed === true) {
+            track.completed = '1';
+        } else {
+            track.completed = '0';
+        }
+
         return track;
     }
 
+    /*async*/
     persistTrack(track) {
         track = RedisService.prepareTrack(track);
         const {gid, ...data} = track;
@@ -176,6 +183,7 @@ export class RedisService {
         ]);
     }
 
+    /*async*/
     persistTracks(tracks) {
         tracks = tracks.map(t => RedisService.prepareTrack(t));
 
@@ -185,6 +193,7 @@ export class RedisService {
         ]);
     }
 
+    /*async*/
     removeTracks(ids) {
         return Promise.all([
             this.clientDel(ids.map(gid => `${TRACKS_NAMESPACE}:${gid}`)), // Delete timestamps

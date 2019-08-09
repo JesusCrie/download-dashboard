@@ -26,7 +26,7 @@ router.post('/refresh', validate({body: schemas.authRefresh}), (req, res, next) 
         res.json({
             token: authService().createToken()
         });
-    }).catch(next);
+    }).catch(next); // Let the middleware handle it
 });
 
 export default router;

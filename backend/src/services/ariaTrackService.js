@@ -49,7 +49,7 @@ export class AriaTrackService {
         const whitelist = await this.allDownloads();
         await Promise.all(
             whitelist.filter(dl => dl.status === 'active')
-                .map(({gid}) => this.computeAndPersistTrackElapsedTime(gid))
+                .map(({gid}) => this.#computeAndPersistTrackElapsedTime(gid))
         );
 
         const amount = await this.#redisService.cleanupTracks(whitelist.map(({gid}) => gid));
@@ -60,34 +60,36 @@ export class AriaTrackService {
     }
 
     #onDownloadComplete([{gid}]) {
-        this.computeAndPersistTrackElapsedTime(gid, true).then(() => {
+        this.#computeAndPersistTrackElapsedTime(gid, true).then(() => {
             loggerStatus.complete(gid);
         });
     }
 
-    async #onDownloadStart([{gid}]) {
+    #onDownloadStart([{gid}]) {
         // Get the associated data
-        const track = await this.#redisService.getTrack(gid);
-        // Update the start of the dl
-        track.startedAt = Date.now() / 1000 | 0;
+        this.#redisService.getTrack(gid).then(track => {
+            // Update the start of the dl
+            track.startedAt = Date.now() / 1000 | 0;
 
-        await this.#redisService.persistTrack(track);
-        loggerStatus.active(gid);
+            return this.#redisService.persistTrack(track);
+        }).then(() => {
+            loggerStatus.active(gid);
+        });
     }
 
     #onDownloadPause([{gid}]) {
-        this.computeAndPersistTrackElapsedTime(gid).then(() => {
+        this.#computeAndPersistTrackElapsedTime(gid).then(() => {
             loggerStatus.paused(gid);
         });
     }
 
     #onDownloadError([{gid}]) {
-        this.computeAndPersistTrackElapsedTime(gid).then(() => {
+        this.#computeAndPersistTrackElapsedTime(gid).then(() => {
             loggerStatus.error(gid);
         });
     }
 
-    async computeAndPersistTrackElapsedTime(gid, completed = false) {
+    async #computeAndPersistTrackElapsedTime(gid, completed = false) {
         // Get the associated data
         const track = await this.#redisService.getTrack(gid);
         if (!track.startedAt) {
@@ -99,7 +101,7 @@ export class AriaTrackService {
             track.completed = true;
         }
 
-        if (!track.completed) {
+        if (!track.completed === true) {
             // Create field if it doesn't exist yet
             if (!track.elapsedTime) track.elapsedTime = 0;
 
@@ -116,11 +118,12 @@ export class AriaTrackService {
 
     // Utility methods
 
+    /*async*/
     downloadByGid(gid) {
         return this.call('tellStatus', gid);
     }
 
-    async allDownloads() {
+    async allDownloads(onlyGids = false) {
         let {numActive, numWaiting, numStoppedTotal} = await this.call('getGlobalStat');
 
         // Convert to numbers
@@ -128,15 +131,17 @@ export class AriaTrackService {
         numWaiting |= 0;
         numStoppedTotal |= 0;
 
-        // noinspection ES6MissingAwait
-        const active = numActive > 0 ? this.call('tellActive') : Promise.resolve([]);
-        // noinspection ES6MissingAwait
-        const waiting = numWaiting > 0 ? this.call('tellWaiting', 0, numWaiting) : Promise.resolve([]);
-        // noinspection ES6MissingAwait
-        const stopped = numStoppedTotal > 0 ? this.call('tellStopped', 0, numStoppedTotal) : Promise.resolve([]);
+        const keys = onlyGids ? ['gid'] : [];
 
         // Empty flatMap because the result will be of the form [[...], [...], [...]]
-        return (await Promise.all([active, waiting, stopped])).flatMap(v => v);
+        return await Promise.all([
+            numActive > 0 ? this.call('tellActive', keys) : Promise.resolve([]),
+            numWaiting > 0 ? this.call('tellWaiting', 0, numWaiting, keys) : Promise.resolve([]),
+            numStoppedTotal > 0 ? this.call('tellStopped', 0, numStoppedTotal, keys) : Promise.resolve([])
+
+        ]).then(values =>
+            values.flatMap(v => v)
+        );
     }
 
     async activeTracksCount() {
@@ -144,7 +149,7 @@ export class AriaTrackService {
         return +numActive;
     }
 
-    async addUri(uris, options = undefined, position = undefined) {
+    async addUri(uris, options, position) {
         let args = [uris];
 
         if (position) {
@@ -157,5 +162,35 @@ export class AriaTrackService {
 
         const gid = await this.call('addUri', ...args);
         return await this.downloadByGid(gid);
+    }
+
+    async pause(gid) {
+        return this.call('pause', gid);
+    }
+
+    async pauseAll() {
+        return this.call('pauseAll');
+    }
+
+    async resume(gid) {
+        return this.call('unpause', gid);
+    }
+
+    async resumeAll() {
+        return this.call('unpauseAll');
+    }
+
+    async remove(gid) {
+        return this.call('remove', gid);
+    }
+
+    async move(gid, position, method) {
+        return this.call('changePosition', gid, position, method);
+    }
+
+    async purge() {
+        await this.call('purgeDownloadResult');
+        const downloads = await this.allDownloads(true).then(ts => ts.map(({gid}) => gid));
+        await this.#redisService.cleanupTracks(downloads);
     }
 }

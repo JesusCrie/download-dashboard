@@ -62,7 +62,7 @@ const load = async () => {
                 await service.start();
             }
 
-            logger.pending(`[${+index + 1}/${services.length}] Service ${service.constructor.name} started`);
+            logger.pending(`[${+index + 1}/${services.length}] Service ${service.constructor.ID} started`);
         } catch (e) {
             logger.error('A service failed to start !');
             errorHandler(service, e);
@@ -86,7 +86,7 @@ const unload = async () => {
                 await service.stop();
             }
 
-            logger.pending(`Service ${service.constructor.name} stopped`);
+            logger.pending(`Service ${service.constructor.ID} stopped`);
         } catch (e) {
             logger.error('A service failed to stop !');
             errorHandler(service, e);
@@ -111,7 +111,7 @@ const createGetter = (id) => {
 };
 
 const errorHandler = (service, err) => {
-    logger.error(`Service '${service.constructor.name}' failed !`);
+    logger.error(`Service '${service.constructor.ID}' failed !`);
     logger.error(err);
 };
 

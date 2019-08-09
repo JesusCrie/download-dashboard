@@ -3,7 +3,8 @@ import bodyParser from 'body-parser';
 import * as serviceManager from './services/serviceManager';
 import authRoutes from './routes/auth';
 import metricsRoutes from './routes/metrics';
-import ariaRoutes from './routes/aria';
+import ariaGlobalRoutes from './routes/ariaGlobal';
+import ariaTrackControlRoutes from './routes/ariaTrackControl'
 import {
     errorMiddleware,
     notFoundMiddleware,
@@ -36,7 +37,7 @@ export const run = async () => {
     // Routes
     app.use(metricsRoutes);
     app.use('/auth', authRoutes);
-    app.use('/aria2', ariaRoutes);
+    app.use('/aria2', ariaGlobalRoutes, ariaTrackControlRoutes);
 
     // Fallback middleware
     app.use(

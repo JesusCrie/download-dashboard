@@ -62,7 +62,30 @@ const downloadLogger = new Signale({
 });
 downloadLogger.config(globalConfig);
 
+// Tracker logger
+const trackerLogger = new Signale({
+    types: {
+        error: { //
+            badge: figures.warning,
+            color: 'red',
+            label: 'Error',
+            logLevel: 'error'
+        },
+        track: {
+            badge: figures.pointer,
+            color: 'yellow',
+            label: 'Potential bug',
+            logLevel: 'warn'
+        }
+    }
+}).scope('Tracking');
+
+if (process.env.NODE_ENV === 'production') {
+    trackerLogger.disable();
+}
+
 export {
     baseLogger as default,
-    downloadLogger
+    downloadLogger,
+    trackerLogger
 };
