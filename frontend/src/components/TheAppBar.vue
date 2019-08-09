@@ -19,7 +19,8 @@
 
 <script lang="js">
     import { mapMutations, mapState } from 'vuex';
-    import OnlineChip from '@/components/OnlineChip';
+    import OnlineChip from '@/components/OnlineChip.vue';
+    import axios from 'axios';
 
     export default {
         name: 'TheAppBar',
@@ -28,8 +29,20 @@
             ...mapState(['isOnline']),
 
             hideOnScroll() {
-		return this.$vuetify.breakpoint.smAndDown;
+                return this.$vuetify.breakpoint.smAndDown;
             }
+        },
+
+        beforeCreate() {
+            axios.head('http://localhost:8000/health').then(res => {
+                if (res.status === 200) {
+                    console.log('Ok !');
+                } else {
+                    console.log('Not ok');
+                }
+            }, e => {
+                console.log('Not ok');
+            });
         },
 
         methods: {

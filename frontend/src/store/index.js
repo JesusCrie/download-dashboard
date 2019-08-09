@@ -1,33 +1,36 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import drawer from './modules/drawer';
+import persistence from './modules/persistence';
+import auth from './modules/auth';
 
 Vue.use(Vuex);
 
-export interface NavigationLink {
+/*export interface NavigationLink {
     displayName: string;
     routeName: string;
     iconName: string;
-}
+}*/
 
-export interface StatusIndicator {
+/*export interface StatusIndicator {
     title: string;
     value: string | number;
     icon?: string;
     cssColor?: string | number;
     cssClasses?: string;
+}*/
+
+export class TrackStatus {
+    static ACTIVE;
+    static WAITING;
+    static PAUSED;
+    static ERROR;
+    static COMPLETE;
+    static REMOVED;
+    static UNKNOWN;
 }
 
-export enum TrackStatus {
-    ACTIVE,
-    WAITING,
-    PAUSED,
-    ERROR,
-    COMPLETE,
-    REMOVED,
-    UNKNOWN
-}
-
-export interface Aria2TrackStatus {
+/*export interface Aria2TrackStatus {
     gid: string;
     status?: 'active' | 'waiting' | 'paused' | 'error' | 'complete' | 'removed';
     totalLength?: string;
@@ -57,12 +60,12 @@ export interface Aria2TrackStatus {
         info: { name: string | { 'utf-8': string } }
     };
     verifiedLength?: string;
-    verifiedIntegrityPending?: 'true'|string;
+    verifiedIntegrityPending?: 'true' | string;
 
-}
+}*/
 
 // Routes
-const routes: NavigationLink[] = [
+const routes = [
     {
         displayName: 'Home / Status',
         routeName: 'status',
@@ -75,7 +78,7 @@ const routes: NavigationLink[] = [
 ];
 
 // Status indicators
-const indicators: StatusIndicator[] = [
+const indicators = [
     {
         title: 'OS',
         value: 'Raspbian',
@@ -120,34 +123,28 @@ const indicators: StatusIndicator[] = [
 ];
 
 export default new Vuex.Store({
+    modules: {
+        drawer: drawer,
+        persistence: persistence,
+        auth: auth
+    },
+
     state: {
         isOnline: true,
-        drawer: {
-            isVisible: true,
-            isMini: true
-        },
+
         navigationLinks: routes,
-        statusIndicators: indicators
+        statusIndicators: indicators,
+    },
+
+    getters: {
+        isAppLocked(state) {
+            return !state.isOnline || state.getters['auth/isLoggedIn'];
+        }
     },
 
     mutations: {
-        setOnlineState(state, payload: { isOnline: boolean }) {
+        setOnlineState(state, payload) {
             state.isOnline = payload.isOnline;
-        },
-
-        setDrawerState(state, payload: { isVisible?: boolean, isMini?: boolean }) {
-            if (payload.isVisible !== undefined) {
-                state.drawer.isVisible = payload.isVisible;
-            }
-
-            if (payload.isMini !== undefined) {
-                state.drawer.isMini = payload.isMini;
-            }
-        },
-
-        toggleDrawerVisible(state) {
-            // @ts-ignore
-            this.commit('setDrawerState', {isVisible: !state.drawer.isVisible});
         }
     },
     actions: {}

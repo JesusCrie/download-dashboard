@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import StatusBoard from '@/views/StatusBoard.vue';
-import AriaBoard from '@/views/AriaBoard.vue';
+import StatusBoard from './views/StatusBoard';
+import AriaBoard from './views/AriaBoard';
+import Home from './views/Home';
 
 
 Vue.use(Router);
@@ -12,6 +13,11 @@ export default new Router({
     routes: [
         {
             path: '/',
+            name: 'home',
+            component: Home
+        },
+        {
+            path: '/status',
             name: 'status',
             component: StatusBoard
         }, {

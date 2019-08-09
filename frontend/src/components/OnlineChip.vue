@@ -11,7 +11,7 @@
     </VChip>
 </template>
 
-<script lang="ts">
+<script lang="js">
     export default {
         name: 'OnlineChip',
         props: {

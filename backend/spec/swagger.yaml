@@ -106,6 +106,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/ForbiddenError'
 
+  /auth/check:
+    get:
+      tags:
+        - auth
+      operationId: authCheck
+      summary: Check if a token is still ok
+      description: |
+        Check if a JWT is still usable
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+
   /health:
     get:
       tags:

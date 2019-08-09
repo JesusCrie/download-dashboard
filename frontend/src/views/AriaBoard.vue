@@ -25,37 +25,7 @@
                 />
 
                 <!-- Downloads -->
-                <VDataTable show-select sort-by="status"
-                            :headers="headers" :items="items" item-key="guid"
-                            v-model="selectedItems">
-                    <template v-slot:item.status="{ item }">
-                        <DownloadStatusChip :status="item.status"/>
-                    </template>
-
-                    <template v-slot:item.progress="{ item }">
-                        <DownloadProgressSlot :status="item.status" :progress="item.progress"/>
-                    </template>
-
-                    <template v-slot:item.downloadedSize="{ item }">
-                        {{ item.downloadedSize | bytes }}
-                    </template>
-
-                    <template v-slot:item.totalSize="{ item }">
-                        {{ item.totalSize | bytes }}
-                    </template>
-
-                    <template v-slot:item.speed="{ item }">
-                        {{ item.speed | bytes }}/s
-                    </template>
-
-                    <template v-slot:item.elapsed="{ item }">
-                        {{ item.elapsed | time }}
-                    </template>
-
-                    <template v-slot:item.remaining="{ item }">
-                        {{ item.remaining | time }}
-                    </template>
-                </VDataTable>
+                <DownloadTable/>
 
                 <VDialog persistent
                          v-model="dialogOpen" :max-width="responsiveDialogWidth">
@@ -68,15 +38,15 @@
 </template>
 
 <script lang="js">
-    import DownloadStatusChip from '@/components/DownloadStatusChip';
-    import DownloadProgressSlot from '@/components/DownloadProgressSlot';
-    import { TrackStatus } from '@/store';
-    import DownloadActions from '@/components/DownloadActions';
-    import NewDownloadFormCard from '@/components/NewDownloadFormCard';
+    import DownloadStatusChip from '@/components/DownloadStatusChip.vue';
+    import DownloadProgressSlot from '@/components/DownloadProgressSlot.vue';
+    import DownloadActions from '@/components/DownloadActions.vue';
+    import NewDownloadFormCard from '@/components/NewDownloadFormCard.vue';
+    import DownloadTable from '@/components/DownloadTable.vue';
 
     export default {
         name: 'AriaBoard',
-        components: {NewDownloadFormCard, DownloadActions, DownloadProgressSlot, DownloadStatusChip},
+        components: {DownloadTable, NewDownloadFormCard, DownloadActions, DownloadProgressSlot, DownloadStatusChip},
         data: () => ({
             headers: [
                 {text: 'Status', value: 'status'},

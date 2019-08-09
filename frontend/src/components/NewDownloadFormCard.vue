@@ -113,7 +113,7 @@
 <script lang="js">
     import { validationMixin } from 'vuelidate';
     import { integer, minValue, required, url } from 'vuelidate/lib/validators';
-    import { bytes, filename, path } from '@/plugins/vuelidate-custom-validators';
+    import { bytes, filename, path } from '../plugins/vuelidate-custom-validators.js';
 
     export default {
         name: 'NewDownloadFormCard',

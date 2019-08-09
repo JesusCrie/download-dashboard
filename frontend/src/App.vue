@@ -28,7 +28,22 @@
 
     export default {
         name: 'App',
-        components: {TheAppBar, TheSidebar}
+        components: {TheAppBar, TheSidebar},
+
+        beforeCreate() {
+            // Setup local storage
+            this.$store.commit('persistence/detectStorage');
+
+            // Load tokens
+            if (this.$store.getters['persistence/isAvailable']) {
+                const get = this.$store.getters['persistence/retriever'];
+                this.$store.commit('auth/loadTokensFromPersistence', {get});
+            }
+
+            // Give a way for the auth to persist its tokens
+            const set = this.$store.getters['persistence/persister'];
+            this.$store.commit('auth/setPersister', {set});
+        }
     };
 </script>
 
