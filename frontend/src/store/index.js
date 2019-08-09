@@ -124,9 +124,7 @@ const indicators = [
 
 export default new Vuex.Store({
     modules: {
-        drawer: drawer,
-        persistence: persistence,
-        auth: auth
+        drawer, persistence, auth
     },
 
     state: {
@@ -138,7 +136,7 @@ export default new Vuex.Store({
 
     getters: {
         isAppLocked(state) {
-            return !state.isOnline || state.getters['auth/isLoggedIn'];
+            return !state.isOnline || state.auth.isLoggedIn;
         }
     },
 

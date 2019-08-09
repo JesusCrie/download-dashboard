@@ -68,6 +68,13 @@
             },
 
             ...mapState(['navigationLinks'])
+        },
+
+        beforeCreate() {
+            if (this.$vuetify.breakpoint.smAndDown) {
+                console.log('yikes');
+                this.drawerVisible = false;
+            }
         }
     };
 </script>
