@@ -6,7 +6,7 @@
                         :loading="isLoading" :disabled="isLoading"/>
             <VBtn type="submit" :disabled="!canSubmit || isLoading"
                   color="primary" class="ml-4">
-                Unlock
+                <VIcon left small>mdi-lock-open</VIcon> Unlock
             </VBtn>
         </VLayout>
     </form>
