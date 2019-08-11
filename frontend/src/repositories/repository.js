@@ -1,12 +1,10 @@
-import Request from 'axios-request-handler/src/axios-request';
+import requestFactory from './requestFactory';
 
-let baseUrl;
-if (process.env.NODE_ENV === 'production') {
-    baseUrl = `${window.location.protocol}//${window.location.host}/api`;
-} else {
-    baseUrl = 'http://localhost:8000';
-}
+// Metrics
+const healthRequest = requestFactory('/health', 'head');
+const statusRequest = requestFactory('/status');
 
-const healthCheck = new Request('/health', {
-    baseUrl: baseUrl
-});
+export {
+    healthRequest,
+    statusRequest
+};

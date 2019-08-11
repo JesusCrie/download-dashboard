@@ -25,6 +25,7 @@
 <script lang="js">
     import TheSidebar from '@/components/TheSidebar.vue';
     import TheAppBar from '@/components/TheAppBar.vue';
+    import { authCheckRequest, authRefreshRequest } from './repositories/authRepository';
 
     export default {
         name: 'App',
@@ -43,6 +44,20 @@
             // Give a way for the auth to persist its tokens
             const set = this.$store.getters['persistence/persister'];
             this.$store.commit('auth/setPersister', {set});
+
+            // Check auth status and try to refresh
+            authCheckRequest().catch(err => {
+                if (error?.response?.status === 403) {
+                    console.warn('Auth token expired, trying to refresh...');
+
+                    authRefreshRequest({refreshToken: this.$store.state.auth.refreshToken}).then(res => {
+                        console.log('Auth token successfully refreshed !');
+                    }, err => {
+                        console.warn('Failed to refresh auth token, login required');
+                        this.$store.commit('auth/setExpired', {isExpired: true});
+                    });
+                }
+            });
         }
     };
 </script>

@@ -20,7 +20,7 @@
 <script lang="js">
     import { mapMutations, mapState } from 'vuex';
     import OnlineChip from '@/components/OnlineChip.vue';
-    import axios from 'axios';
+    import { healthRequest } from '../repositories/repository';
 
     export default {
         name: 'TheAppBar',
@@ -31,18 +31,6 @@
             hideOnScroll() {
                 return this.$vuetify.breakpoint.smAndDown;
             }
-        },
-
-        beforeCreate() {
-            axios.head('http://localhost:8000/health').then(res => {
-                if (res.status === 200) {
-                    console.log('Ok !');
-                } else {
-                    console.log('Not ok');
-                }
-            }, e => {
-                console.log('Not ok');
-            });
         },
 
         methods: {
@@ -57,13 +45,26 @@
         },
 
         mounted() {
+            healthRequest.poll(5000, res => {
+                if (res.status === 200) {
+                    console.log('Ok !');
+                } else {
+                    console.log('Not ok');
+                }
+            }, err => {
+                console.log('Really not ok');
+            });
+
             window.addEventListener('online', this.onOnline);
             window.addEventListener('offline', this.onOffline);
 
             // Trigger initial state
             (navigator.onLine ? this.onOnline : this.onOffline)();
         },
+
         beforeDestroy() {
+            healthRequest.stopPolling();
+
             window.removeEventListener('online', this.onOnline);
             window.removeEventListener('offline', this.onOffline);
         }

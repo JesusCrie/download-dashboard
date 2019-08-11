@@ -13,12 +13,6 @@ const auth = {
         refreshToken: null
     },
 
-    getters: {
-        authorizationBearer(state) {
-            return `Bearer ${state.jwtToken}`;
-        }
-    },
-
     mutations: {
         setPersister(state, {set}) {
             persister = set;
@@ -27,6 +21,11 @@ const auth = {
         loadTokensFromPersistence(state, {get}) {
             state.jwtToken = get(PERSISTENCE_JWT_TOKEN_KEY);
             state.refreshToken = get(PERSISTENCE_REFRESH_TOKEN_KEY);
+
+            if (state.jwtToken) {
+                state.isLoggedIn = true;
+                state.isExpired = false;
+            }
         },
 
         saveTokensToPersistence(state) {
@@ -46,20 +45,12 @@ const auth = {
             state.isExpired = expired;
         },
 
-        setToken(state, {token, noSave}) {
+        setToken(state, {token}) {
             state.jwtToken = token;
-
-            if (!!state.storageType.length && !noSave) {
-                window[state.storageType].setItem('jwtToken', token);
-            }
         },
 
-        setRefreshToken(state, {token, noSave}) {
+        setRefreshToken(state, {token}) {
             state.refreshToken = token;
-
-            if (!!state.storageType.length && !noSave) {
-                window[state.storageType].setItem('refreshToken', token);
-            }
         }
     },
 

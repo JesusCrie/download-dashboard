@@ -9,7 +9,7 @@ const persistence = {
 
     getters: {
         isAvailable(state) {
-            return state.storage === null;
+            return state.storage !== null;
         },
 
         retriever: (state, getters) => key => {
@@ -32,9 +32,6 @@ const persistence = {
         detectStorage(state) {
             if (storageAvailable('localStorage')) {
                 state.storage = localStorage;
-            //} else if (storageAvailable('sessionStorage')) {
-            //    state.storage = sessionStorage;
-            //    console.warn('WARNING: localStorage is not available: sessionStorage will be used !');
             } else {
                 console.warn('WARNING: localStorage is not available !');
                 console.warn('WARNING: You will be disconnected when you will close this tab !');

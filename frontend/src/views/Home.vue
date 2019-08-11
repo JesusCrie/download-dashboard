@@ -20,7 +20,7 @@
         </template>
         <template v-else>
             <VContainer>
-                <h1 class="text-center display-4"></h1>
+                <h1 class="text-center display-4">Hey</h1>
             </VContainer>
         </template>
     </div>
