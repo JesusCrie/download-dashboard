@@ -18,7 +18,7 @@
             </VListItem>
 
             <!-- Links -->
-            <VDivider/>
+            <VDivider class="pb-1"/>
 
             <VListItem v-for="link in navigationLinks" :key="link.routeName"
                        ripple link exact
@@ -47,6 +47,8 @@
         name: 'TheSidebar',
 
         computed: {
+            ...mapState(['navigationLinks']),
+
             drawerVisible: {
                 get() {
                     return this.$store.state.drawer.isVisible;
@@ -65,9 +67,7 @@
                 set(state) {
                     this.$store.commit('setDrawerState', {isMini: state});
                 }
-            },
-
-            ...mapState(['navigationLinks'])
+            }
         },
 
         beforeCreate() {

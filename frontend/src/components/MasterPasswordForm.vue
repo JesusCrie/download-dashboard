@@ -2,7 +2,7 @@
     <form @submit.prevent="submit()">
         <VLayout align-center>
             <VTextField label="Password" type="password"
-                        v-model="password"
+                        v-model="password" :error-messages="error"
                         :loading="isLoading" :disabled="isLoading"/>
             <VBtn type="submit" :disabled="!canSubmit || isLoading"
                   color="primary" class="ml-4">
@@ -18,7 +18,8 @@
 
         data: () => ({
             isLoading: false,
-            password: null
+            password: null,
+            error: null
         }),
 
         computed: {
@@ -31,9 +32,13 @@
             submit() {
                 this.isLoading = true;
 
-                setTimeout(() => {
-                    this.isLoading = false;
-                }, 2000);
+                this.$store.dispatch('auth/login', {
+                    password: this.password,
+                    cb: (err) => {
+                        this.isLoading = false;
+                        this.error = err !== undefined ? 'Wrong password' : null;
+                    }
+                })
             }
         }
     };

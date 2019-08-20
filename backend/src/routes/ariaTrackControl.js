@@ -17,6 +17,7 @@ const trackMapper = (track, timestamps) => {
         gid: track.gid,
         status: track.status,
         dir: track.dir,
+        out: track.out,
         files: track.files.map(f => ({
             index: +f.index,
             path: f.path,
@@ -30,7 +31,8 @@ const trackMapper = (track, timestamps) => {
         connectionAmount: +track.connections,
         speedDown: +track.downloadSpeed,
         addedAt: timestamps.addedAt,
-        elapsedTime: timestamps.elapsedTime
+        elapsedTime: timestamps.elapsedTime,
+        startedAt: timestamps.startedAt
     };
 
     if (track.errorCode && track.errorCode > 0) {

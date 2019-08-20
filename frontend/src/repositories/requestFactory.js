@@ -12,8 +12,8 @@ const instance = axios.create({
     baseURL: baseUrl
 });
 
-const setBearerToken = token => {
-    instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+const setAuthorizationHeader = header => {
+    instance.defaults.headers.common['Authorization'] = header;
 };
 
 const requestFactory = (path, method = 'get', axiosConfig = {}, mapper = x => x) => {
@@ -71,5 +71,5 @@ const requestFactory = (path, method = 'get', axiosConfig = {}, mapper = x => x)
 
 export {
     requestFactory as default,
-    setBearerToken
+    setAuthorizationHeader
 }

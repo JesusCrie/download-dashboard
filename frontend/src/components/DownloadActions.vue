@@ -18,7 +18,7 @@
         <VTooltip top>
             <template v-slot:activator="{ on }">
                 <VBtn v-on="on" depressed color="primary" class="no-radius right"
-                      @click="onPlay">
+                      @click="onPlay" :loading="isPlayLoading">
                     <VIcon>mdi-play</VIcon>
                 </VBtn>
             </template>
@@ -30,7 +30,7 @@
         <VTooltip top>
             <template v-slot:activator="{ on }">
                 <VBtn v-on="on" depressed color="primary" tile
-                      @click="onPause">
+                      @click="onPause" :loading="isPauseLoading">
                     <VIcon>mdi-pause</VIcon>
                 </VBtn>
             </template>
@@ -42,7 +42,7 @@
         <VTooltip top>
             <template v-slot:activator="{ on }">
                 <VBtn v-on="on" depressed color="primary" class="no-radius left"
-                      @click="onStop">
+                      @click="onStop" :loading="isStopLoading">
                     <VIcon>mdi-stop</VIcon>
                 </VBtn>
             </template>
@@ -61,6 +61,24 @@
                 type: Number,
                 required: false,
                 default: 0
+            },
+
+            'is-play-loading': {
+                type: Boolean,
+                required: false,
+                default: false
+            },
+
+            'is-pause-loading': {
+                type: Boolean,
+                required: false,
+                default: false
+            },
+
+            'is-stop-loading': {
+                type: Boolean,
+                required: false,
+                default: false
             }
         },
 

@@ -18,7 +18,7 @@
         name: 'DownloadProgressSlot',
         props: {
             status: {
-                type: /* TrackStatus */ Number,
+                type: String,
                 required: true
             },
             progress: {

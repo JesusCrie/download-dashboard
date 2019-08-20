@@ -18,14 +18,17 @@
                         @new-uri="onNewUri"
                         @play-selected="onPlaySelected"
                         @play-all="onPlayAll"
+                        :is-play-loading="isPlayLoading"
                         @pause-selected="onPauseSelected"
                         @pause-all="onPauseAll"
+                        :is-pause-loading="isPauseLoading"
                         @stop-selected="onStopSelected"
                         @stop-all="onStopAll"
+                        :is-stop-loading="isStopLoading"
                 />
 
                 <!-- Downloads -->
-                <DownloadTable/>
+                <DownloadTable v-model="selectedItems"/>
 
                 <VDialog persistent
                          v-model="dialogOpen" :max-width="responsiveDialogWidth">
@@ -43,36 +46,12 @@
     import DownloadActions from '@/components/DownloadActions.vue';
     import NewDownloadFormCard from '@/components/NewDownloadFormCard.vue';
     import DownloadTable from '@/components/DownloadTable.vue';
+    import { pauseRequest, purgeRequest, removeRequest, resumeRequest } from '../repositories/ariaRepository';
 
     export default {
         name: 'AriaBoard',
         components: {DownloadTable, NewDownloadFormCard, DownloadActions, DownloadProgressSlot, DownloadStatusChip},
         data: () => ({
-            headers: [
-                {text: 'Status', value: 'status'},
-                {text: 'Name', value: 'name'},
-                {text: 'Progress', value: 'progress', sort: (a, b) => b - a},
-                {text: 'Downloaded Size', value: 'downloadedSize'},
-                {text: 'Total Size', value: 'totalSize'},
-                {text: 'Speed', value: 'speed'},
-                {text: 'Elapsed Time', value: 'elapsed'},
-                {text: 'Remaining', value: 'remaining'}
-            ],
-
-            items: [
-                {
-                    guid: 0,
-                    name: 'SomeTotallyLegallyDownloadedMovie.mkv', status: TrackStatus.ACTIVE,
-                    progress: 0.49, downloadedSize: 525709420, totalSize: 1072876367,
-                    speed: 1960000, elapsed: 35, remaining: 40
-                }, {
-                    guid: 1,
-                    name: 'SomeLowQualityHentai.avi', status: TrackStatus.COMPLETE,
-                    progress: 1, downloadedSize: 204732003, totalSize: 204732003,
-                    speed: 15000, elapsed: 125, remaining: 0
-                }
-            ],
-
             selectedItems: [],
             _dialogOpen: false,
             get dialogOpen() {
@@ -80,7 +59,11 @@
             },
             set dialogOpen(val) {
                 this._dialogOpen = val;
-            }
+            },
+
+            isPlayLoading: false,
+            isPauseLoading: false,
+            isStopLoading: false
         }),
 
         computed: {
@@ -102,27 +85,57 @@
             },
 
             onPlaySelected() {
+                this.isPlayLoading = true;
 
+                Promise.all(
+                    this.selectedItems.map(({gid}) => resumeRequest({gid}))
+                ).finally(() => {
+                    this.isPlayLoading = false;
+                });
             },
 
             onPlayAll() {
+                this.isPlayLoading = true;
 
+                resumeRequest().finally(() =>
+                    this.isPlayLoading = false
+                );
             },
 
             onPauseSelected() {
+                this.isPauseLoading = true;
 
+                Promise.all(
+                    this.selectedItems.map(({gid}) => pauseRequest({gid}))
+                ).finally(() =>
+                    this.isPauseLoading = false
+                );
             },
 
             onPauseAll() {
+                this.isPauseLoading = true;
 
+                pauseRequest().finally(() =>
+                    this.isPauseLoading = false
+                );
             },
 
             onStopSelected() {
+                this.isStopLoading = true;
 
+                Promise.all(
+                    this.selectedItems.map(({gid}) => removeRequest(gid)())
+                ).finally(() =>
+                    this.isStopLoading = false
+                );
             },
 
             onStopAll() {
+                this.isStopLoading = true;
 
+                purgeRequest().finally(() =>
+                    this.isStopLoading = false
+                );
             }
         }
     };

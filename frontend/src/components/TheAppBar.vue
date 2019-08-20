@@ -20,7 +20,6 @@
 <script lang="js">
     import { mapMutations, mapState } from 'vuex';
     import OnlineChip from '@/components/OnlineChip.vue';
-    import { healthRequest } from '../repositories/repository';
 
     export default {
         name: 'TheAppBar',
@@ -45,16 +44,6 @@
         },
 
         mounted() {
-            healthRequest.poll(5000, res => {
-                if (res.status === 200) {
-                    console.log('Ok !');
-                } else {
-                    console.log('Not ok');
-                }
-            }, err => {
-                console.log('Really not ok');
-            });
-
             window.addEventListener('online', this.onOnline);
             window.addEventListener('offline', this.onOffline);
 
@@ -63,8 +52,6 @@
         },
 
         beforeDestroy() {
-            healthRequest.stopPolling();
-
             window.removeEventListener('online', this.onOnline);
             window.removeEventListener('offline', this.onOffline);
         }

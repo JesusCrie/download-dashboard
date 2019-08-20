@@ -3,66 +3,19 @@ import Vuex from 'vuex';
 import drawer from './modules/drawer';
 import persistence from './modules/persistence';
 import auth from './modules/auth';
+import aria from './modules/aria';
 
 Vue.use(Vuex);
 
-/*export interface NavigationLink {
-    displayName: string;
-    routeName: string;
-    iconName: string;
-}*/
-
-/*export interface StatusIndicator {
-    title: string;
-    value: string | number;
-    icon?: string;
-    cssColor?: string | number;
-    cssClasses?: string;
-}*/
-
 export class TrackStatus {
-    static ACTIVE;
-    static WAITING;
-    static PAUSED;
-    static ERROR;
-    static COMPLETE;
-    static REMOVED;
+    static ACTIVE = 'active';
+    static WAITING = 'waiting';
+    static PAUSED = 'paused';
+    static ERROR = 'error';
+    static COMPLETE = 'complete';
+    static REMOVED = 'removed';
     static UNKNOWN;
 }
-
-/*export interface Aria2TrackStatus {
-    gid: string;
-    status?: 'active' | 'waiting' | 'paused' | 'error' | 'complete' | 'removed';
-    totalLength?: string;
-    completedLength?: string;
-    uploadLength?: string;
-    bitfield?: string;
-    downloadSpeed?: string;
-    uploadSpeed?: string;
-    infoHash?: string;
-    numSeeders?: string;
-    seeder?: 'true' | 'false';
-    pieceLength?: string;
-    numPieces?: string;
-    connections?: string;
-    errorCode?: string;
-    errorMessage?: string;
-    followedBy?: string[];
-    following?: string;
-    belongsTo?: string;
-    dir?: string;
-    files?: string; // TODO
-    bittorrent?: {
-        annonceList: string[],
-        comment: string,
-        creationDate: string,
-        mode: 'single' | 'multi',
-        info: { name: string | { 'utf-8': string } }
-    };
-    verifiedLength?: string;
-    verifiedIntegrityPending?: 'true' | string;
-
-}*/
 
 // Routes
 const routes = [
@@ -124,26 +77,30 @@ const indicators = [
 
 export default new Vuex.Store({
     modules: {
-        drawer, persistence, auth
+        drawer, persistence, auth, aria
     },
 
     state: {
         isOnline: true,
+        blockedNavigation: null,
 
         navigationLinks: routes,
-        statusIndicators: indicators,
+        statusIndicators: indicators
     },
 
     getters: {
-        isAppLocked(state) {
-            return !state.isOnline || state.auth.isLoggedIn;
+        isAppUnlocked(state) {
+            return state.isOnline && state.auth.isLoggedIn;
         }
     },
 
     mutations: {
-        setOnlineState(state, payload) {
-            state.isOnline = payload.isOnline;
+        setOnlineState(state, {isOnline}) {
+            state.isOnline = isOnline;
+        },
+
+        setBlockedNavigation(state, {routeName}) {
+            state.blockedNavigation = routeName;
         }
-    },
-    actions: {}
+    }
 });

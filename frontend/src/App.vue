@@ -25,7 +25,7 @@
 <script lang="js">
     import TheSidebar from '@/components/TheSidebar.vue';
     import TheAppBar from '@/components/TheAppBar.vue';
-    import { authCheckRequest, authRefreshRequest } from './repositories/authRepository';
+    import { healthRequest } from './repositories/repository';
 
     export default {
         name: 'App',
@@ -46,18 +46,44 @@
             this.$store.commit('auth/setPersister', {set});
 
             // Check auth status and try to refresh
-            authCheckRequest().catch(err => {
-                if (error?.response?.status === 403) {
-                    console.warn('Auth token expired, trying to refresh...');
+            this.$store.dispatch('auth/checkAuth');
+        },
 
-                    authRefreshRequest({refreshToken: this.$store.state.auth.refreshToken}).then(res => {
-                        console.log('Auth token successfully refreshed !');
-                    }, err => {
-                        console.warn('Failed to refresh auth token, login required');
-                        this.$store.commit('auth/setExpired', {isExpired: true});
-                    });
-                }
+        beforeMount() {
+            // Start polling service health
+            healthRequest.poll(10_000, () => {
+                this.$store.commit('setOnlineState', {isOnline: true});
+
+                // If service online, check auth
+                this.$store.dispatch('auth/checkAuth');
+
+            }, () => {
+                this.$store.commit('setOnlineState', {isOnline: false});
+                this.$store.commit('auth/setLogged', {loggedIn: false});
             });
+
+            this.$store.watch(
+                (state, getters) => getters.isAppUnlocked,
+                (current, prev) => {
+                    if (prev === false && current === true) {
+                        // If app just unlocked, navigate to status page / previous
+                        if (this.$store.state.blockedNavigation) {
+                            this.$router.push({name: this.$store.state.blockedNavigation});
+                            this.$store.commit('setBlockedNavigation', {routeName: null});
+                        } else {
+                            this.$router.push({name: 'status'});
+                        }
+
+                    } else if (prev === true && current === false) {
+                        // If app just locked, navigate to home page
+                        this.$router.push({name: 'home'});
+                    }
+                }
+            );
+        },
+
+        beforeDestroy() {
+            healthRequest.stopPolling();
         }
     };
 </script>

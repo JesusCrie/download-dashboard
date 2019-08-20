@@ -1,7 +1,8 @@
 <template>
     <div>
         <template v-if="!isOnline">
-            App offline
+            <h1 class="text-center display-4 ma-10">App Offline</h1>
+            <h2 class="text-center display-1 font-weight-thin font-italic">Can't reach server</h2>
         </template>
         <template v-else-if="!isLoggedIn">
             <VContainer>
@@ -18,11 +19,8 @@
                 </VLayout>
             </VContainer>
         </template>
-        <template v-else>
-            <VContainer>
-                <h1 class="text-center display-4">Hey</h1>
-            </VContainer>
-        </template>
+        <!-- If the app is unlocked, the default page is /status -->
+        <!-- so no default view here -->
     </div>
 </template>
 

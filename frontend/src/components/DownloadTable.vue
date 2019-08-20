@@ -1,6 +1,6 @@
 <template>
     <VDataTable show-select sort-by="status"
-                :headers="headers" :items="items" item-key="guid"
+                :headers="headers" :items="items" item-key="gid"
                 v-model="selectedItems">
         <template v-slot:item.status="{ item }">
             <DownloadStatusChip :status="item.status"/>
@@ -22,12 +22,15 @@
             {{ item.speed | bytes }}/s
         </template>
 
-        <template v-slot:item.elapsed="{ item }">
-            {{ item.elapsed | time }}
+        <template v-slot:item.remaining="{ item }">
+            <template v-if="Number.isFinite(item.remaining)">
+                {{ item.remaining | time }}
+            </template>
+            <VIcon v-else>mdi-infinity</VIcon>
         </template>
 
-        <template v-slot:item.remaining="{ item }">
-            {{ item.remaining | time }}
+        <template v-slot:item.elapsed="{ item }">
+            {{ item.elapsed | time }}
         </template>
     </VDataTable>
 </template>
@@ -35,12 +38,22 @@
 <script>
     import DownloadStatusChip from './DownloadStatusChip';
     import DownloadProgressSlot from './DownloadProgressSlot';
-    import { TrackStatus } from '@/store';
-    import axios from 'axios';
+    import { listRequest } from '../repositories/ariaRepository';
+    import { mapState } from 'vuex';
 
     export default {
         name: 'DownloadTable',
         components: {DownloadStatusChip, DownloadProgressSlot},
+
+        model: {
+            prop: 'selected',
+            event: 'selectionChange'
+        },
+
+        props: {
+            selected: Array,
+            required: false
+        },
 
         data: () => ({
             headers: [
@@ -51,48 +64,38 @@
                 {text: 'Total Size', value: 'totalSize'},
                 {text: 'Speed', value: 'speed'},
                 {text: 'Elapsed Time', value: 'elapsed'},
-                {text: 'Remaining', value: 'remaining'}
-            ],
-
-            items: [
-                {
-                    guid: 0,
-                    name: 'SomeTotallyLegallyDownloadedMovie.mkv', status: TrackStatus.ACTIVE,
-                    progress: 0.49, downloadedSize: 525709420, totalSize: 1072876367,
-                    speed: 1960000, elapsed: 35, remaining: 40
-                }, {
-                    guid: 1,
-                    name: 'SomeLowQualityHentai.avi', status: TrackStatus.COMPLETE,
-                    progress: 1, downloadedSize: 204732003, totalSize: 204732003,
-                    speed: 15000, elapsed: 125, remaining: 0
-                }
+                {text: 'Remaining Time', value: 'remaining'}
             ],
 
             _selectedItems: []
         }),
 
         computed: {
+            ...mapState({
+                items: state => state.aria.tracks
+            }),
+
             selectedItems: {
                 get() {
-                    return this._selectedItems;
+                    return this.selected;
                 },
 
                 set(v) {
-                    console.log(v);
-                    this._selectedItems = v;
                     this.$emit('selectionChange', v);
                 }
             }
         },
 
-        methods: {
-            queryTracks() {
-                axios.get()
-            }
+        mounted() {
+            listRequest.poll(1_000, ({data}) => {
+                this.$store.dispatch('aria/normalizeAndSaveTracks', {tracks: data});
+            }, err => {
+                this.$store.commit('aria/setTracks', {tracks: []});
+            });
+        },
+
+        beforeDestroy() {
+            listRequest.stopPolling();
         }
     };
 </script>
-
-<style scoped>
-
-</style>

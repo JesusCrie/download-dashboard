@@ -744,6 +744,10 @@ components:
           description: Directory where the download will be saved
           type: string
           example: /some/path/to/folder
+        out:
+          description: Filename of the output file
+          type: string
+          example: file.zip
         files:
           description: Files composing the download (for multi torrents), usually only one element
           type: array
@@ -795,6 +799,11 @@ components:
           type: integer
           format: int64
           example: 5400
+        startedAt:
+          description: Timestamp when the download was started/resumed the last time
+          type: integer
+          format: int64
+          example: 1546300800
         error:
           description: The eventual error, only if stopped/completed
           type: object
@@ -815,6 +824,7 @@ components:
         - gid
         - status
         - dir
+        - out
         - files
         - sizeTotal
         - sizeCompleted
