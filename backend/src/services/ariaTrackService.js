@@ -205,7 +205,10 @@ export class AriaTrackService {
     }
 
     async remove(gid) {
-        return this.call('remove', gid);
+        return this.call('remove', gid).then(x => {
+            loggerStatus.remove(gid);
+            return x;
+        });
     }
 
     async move(gid, position, method) {
@@ -214,6 +217,7 @@ export class AriaTrackService {
 
     async purge() {
         await this.call('purgeDownloadResult');
+        loggerStatus.remove('Purge');
         const downloads = await this.allDownloads(true).then(ts => ts.map(({gid}) => gid));
         await this.#redisService.cleanupTracks(downloads);
     }

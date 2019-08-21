@@ -57,6 +57,12 @@ const downloadLogger = new Signale({
             color: 'red',
             label: 'error',
             logLevel: 'error'
+        },
+        remove: {
+            badge: '🗑',
+            color: 'grey',
+            label: 'remove',
+            logLevel: 'info'
         }
     }
 });

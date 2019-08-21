@@ -52,6 +52,10 @@ const requestFactory = (path, method = 'get', axiosConfig = {}, mapper = x => x)
         // To avoid 'ghost' polling
         this.stopPolling();
 
+        // Initial request
+        this().then(onResolved, onReject);
+
+        // And schedule the next requests
         this.pollId = setInterval(() => {
             this().then(onResolved, onReject);
         }, interval);

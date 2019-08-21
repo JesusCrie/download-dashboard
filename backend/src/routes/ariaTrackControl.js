@@ -156,7 +156,7 @@ router.patch('/pause', authMiddleware, (req, res, next) => {
     }
 });
 
-router.patch('/remove/:gid', authMiddleware, (req, res, next) => {
+router.delete('/remove/:gid', authMiddleware, (req, res, next) => {
     ariaTrackService().remove(req.params.gid).then(() => {
         res.json(commonOk);
     }).catch(err => {
