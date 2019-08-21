@@ -20,6 +20,8 @@ const persistence = {
 
         persister: (state, getters) => (key, value) => {
             if (getters.isAvailable) {
+                console.log(key);
+
                 if (typeof value !== 'string'){
                     value = JSON.stringify(value);
                 }

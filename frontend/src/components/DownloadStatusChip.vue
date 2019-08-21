@@ -32,49 +32,65 @@
                 icon: null,
                 color: null,
                 title: null,
-                subtitle: this.error || null
+                subtitle: this.error || null,
             };
         },
 
-        created() {
-            switch (this.status) {
-                case TrackStatus.COMPLETE:
-                    this.title = 'Complete';
-                    this.icon = 'check-underline-circle';
-                    this.color = 'green';
-                    break;
-                case TrackStatus.ACTIVE:
-                    this.title = 'Downloading';
-                    this.icon = 'arrow-down-bold-circle';
-                    this.color = 'blue';
-                    break;
-                case TrackStatus.WAITING:
-                    this.title = 'Waiting';
-                    this.icon = 'dots-horizontal-circle';
-                    this.color = 'cyan';
-                    break;
-                case TrackStatus.PAUSED:
-                    this.title = 'Paused';
-                    this.icon = 'pause-circle';
-                    this.color = 'amber';
-                    break;
-                case TrackStatus.ERROR:
-                    this.title = 'Errored';
-                    this.icon = 'alert-circle';
-                    this.color = 'red';
-                    break;
-                case TrackStatus.REMOVED:
-                    this.title = 'Removed';
-                    this.icon = 'delete-circle';
-                    this.color = 'grey';
-                    break;
-                case TrackStatus.UNKNOWN:
-                default:
-                    this.title = 'Unknown Status';
-                    this.icon = 'help-circle';
-                    this.color = 'black';
-                    break;
+        methods: {
+            computeAttributes() {
+                switch (this.status) {
+                    case TrackStatus.COMPLETE:
+                        this.title = 'Complete';
+                        this.icon = 'check-underline-circle';
+                        this.color = 'green';
+                        break;
+                    case TrackStatus.ACTIVE:
+                        this.title = 'Downloading';
+                        this.icon = 'arrow-down-bold-circle';
+                        this.color = 'blue';
+                        break;
+                    case TrackStatus.WAITING:
+                        this.title = 'Waiting';
+                        this.icon = 'dots-horizontal-circle';
+                        this.color = 'cyan';
+                        break;
+                    case TrackStatus.PAUSED:
+                        this.title = 'Paused';
+                        this.icon = 'pause-circle';
+                        this.color = 'amber';
+                        break;
+                    case TrackStatus.ERROR:
+                        this.title = 'Errored';
+                        this.icon = 'alert-circle';
+                        this.color = 'red';
+                        break;
+                    case TrackStatus.REMOVED:
+                        this.title = 'Removed';
+                        this.icon = 'delete-circle';
+                        this.color = 'grey';
+                        break;
+                    case TrackStatus.UNKNOWN:
+                    default:
+                        this.title = 'Unknown Status';
+                        this.icon = 'help-circle';
+                        this.color = 'black';
+                        break;
+                }
             }
+        },
+
+        mounted() {
+            this._unwatch = this.$watch('status', (prev, next) => {
+                if (prev !== next) {
+                    this.computeAttributes();
+                }
+            });
+
+            this.computeAttributes();
+        },
+
+        beforeDestroy() {
+            this._unwatch();
         }
     };
 </script>

@@ -26,7 +26,9 @@
             <template v-if="Number.isFinite(item.remaining)">
                 {{ item.remaining | time }}
             </template>
-            <VIcon v-else>mdi-infinity</VIcon>
+            <VIcon v-else>
+                mdi-infinity
+            </VIcon>
         </template>
 
         <template v-slot:item.elapsed="{ item }">

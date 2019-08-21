@@ -22,9 +22,9 @@
                         @pause-selected="onPauseSelected"
                         @pause-all="onPauseAll"
                         :is-pause-loading="isPauseLoading"
-                        @stop-selected="onStopSelected"
-                        @stop-all="onStopAll"
-                        :is-stop-loading="isStopLoading"
+                        @stop-selected="onDeleteSelected"
+                        @stop-all="onDeleteAll"
+                        :is-delete-loading="isDeleteLoading"
                 />
 
                 <!-- Downloads -->
@@ -32,7 +32,7 @@
 
                 <VDialog persistent
                          v-model="dialogOpen" :max-width="responsiveDialogWidth">
-                    <NewDownloadFormCard @cancel="dialogOpen = false"/>
+                    <NewDownloadFormCard @close="dialogOpen = false"/>
                 </VDialog>
 
             </VFlex>
@@ -47,6 +47,7 @@
     import NewDownloadFormCard from '@/components/NewDownloadFormCard.vue';
     import DownloadTable from '@/components/DownloadTable.vue';
     import { pauseRequest, purgeRequest, removeRequest, resumeRequest } from '../repositories/ariaRepository';
+    import { TrackStatus } from '../store';
 
     export default {
         name: 'AriaBoard',
@@ -63,10 +64,14 @@
 
             isPlayLoading: false,
             isPauseLoading: false,
-            isStopLoading: false
+            isDeleteLoading: false
         }),
 
         computed: {
+            updatedSelectedTracks() {
+                return this.getUpdatedTrackList(this.selectedItems);
+            },
+
             responsivePadding() {
                 return {
                     'pa-4': this.$vuetify.breakpoint.mdAndUp,
@@ -80,6 +85,12 @@
         },
 
         methods: {
+            getUpdatedTrackList(tracks) {
+                return tracks.map(({gid}) => {
+                    return this.$store.state.aria.tracks.find(({gid: otherGid}) => otherGid === gid);
+                }).filter(i => i !== undefined);
+            },
+
             onNewUri() {
                 this.dialogOpen = true;
             },
@@ -88,8 +99,14 @@
                 this.isPlayLoading = true;
 
                 Promise.all(
-                    this.selectedItems.map(({gid}) => resumeRequest({gid}))
-                ).finally(() => {
+                    this.updatedSelectedTracks
+                        .filter(({status}) => status !== TrackStatus.ACTIVE)
+                        .map(({gid}) => resumeRequest(undefined, {gid}))
+                ).then(() => {
+                    this.$toast('Successfully resumed tracks');
+                }, err => {
+                    this.$toast(`Failed to resume: ${err.message || err}`, {color: 'error'});
+                }).finally(() => {
                     this.isPlayLoading = false;
                 });
             },
@@ -97,45 +114,68 @@
             onPlayAll() {
                 this.isPlayLoading = true;
 
-                resumeRequest().finally(() =>
-                    this.isPlayLoading = false
-                );
+                resumeRequest().then(() => {
+                    this.$toast('Successfully resumed all tracks');
+                }, err => {
+                    this.$toast(`Failed to resume: ${err.message || err}`, {color: 'error'});
+                }).finally(() => {
+                    this.isPlayLoading = false;
+                });
             },
 
             onPauseSelected() {
                 this.isPauseLoading = true;
 
                 Promise.all(
-                    this.selectedItems.map(({gid}) => pauseRequest({gid}))
-                ).finally(() =>
-                    this.isPauseLoading = false
-                );
+                    this.updatedSelectedTracks
+                        .filter(({status}) => status === TrackStatus.ACTIVE)
+                        .map(({gid}) => pauseRequest(undefined, {gid}))
+                ).then(() => {
+                    this.$toast('Successfully paused tracks');
+                }, err => {
+                    this.$toast(`Failed to pause: ${err.message || err}`, {color: 'error'});
+                }).finally(() => {
+                    this.isPauseLoading = false;
+                });
             },
 
             onPauseAll() {
                 this.isPauseLoading = true;
 
-                pauseRequest().finally(() =>
-                    this.isPauseLoading = false
-                );
+                pauseRequest().then(() => {
+                    this.$toast('Successfully paused all tracks');
+                }, err => {
+                    this.$toast(`Failed to pause: ${err.message || err}`, {color: 'error'});
+                }).finally(() => {
+                    this.isPauseLoading = false;
+                });
             },
 
-            onStopSelected() {
-                this.isStopLoading = true;
+            onDeleteSelected() {
+                this.isDeleteLoading = true;
 
                 Promise.all(
+                    // No need for the `updatedSelectedTracks` here as we only need the gid
                     this.selectedItems.map(({gid}) => removeRequest(gid)())
-                ).finally(() =>
-                    this.isStopLoading = false
-                );
+                ).then(() => {
+                    this.$toast('Successfully removed tracks');
+                }, err => {
+                    this.$toast(`Failed to remove: ${err.message || err}`, {color: 'error'});
+                }).finally(() => {
+                    this.isDeleteLoading = false;
+                });
             },
 
-            onStopAll() {
-                this.isStopLoading = true;
+            onDeleteAll() {
+                this.isDeleteLoading = true;
 
-                purgeRequest().finally(() =>
-                    this.isStopLoading = false
-                );
+                purgeRequest().then(() => {
+                    this.$toast('Successfully purged tracks');
+                }, err => {
+                    this.$toast(`Failed to purge: ${err}`, {color: 'error'});
+                }).finally(() => {
+                    this.isDeleteLoading = false;
+                });
             }
         }
     };

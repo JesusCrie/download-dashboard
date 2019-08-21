@@ -20,7 +20,7 @@ router.get('/stats', authMiddleware, (req, res, next) => {
     });
 });
 
-router.post('/purge', authMiddleware, (req, res, next) => {
+router.delete('/purge', authMiddleware, (req, res, next) => {
 
     ariaTrackService().purge().then(() => {
         res.json(commonOk);

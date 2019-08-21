@@ -1,5 +1,5 @@
 <template>
-    <VForm ref="form" :key="1">
+    <VForm ref="form" :key="1" @submit.prevent="submit()">
         <VCard>
 
             <VCardTitle>Add new URI</VCardTitle>
@@ -97,12 +97,17 @@
 
             <VCardActions>
                 <VSpacer/>
-                <VBtn outlined color="error" @click="onCancel">Cancel</VBtn>
+                <VBtn text color="error"
+                      :disabled="isSending"
+                      @click="onCancel">
+                    Cancel
+                </VBtn>
 
-                <VBtn depressed color="success" class="no-radius right">Start</VBtn>
-                <VDivider vertical/>
-                <VBtn depressed color="success" min-width="0" width="1.5rem" class="ml-0 no-radius left">
-                    <VIcon>mdi-chevron-down</VIcon>
+                <VBtn text color="primary"
+                      type="submit"
+                      :loading="isSending"
+                      :disabled="isInvalid">
+                    Start
                 </VBtn>
             </VCardActions>
 
@@ -114,6 +119,7 @@
     import { validationMixin } from 'vuelidate';
     import { integer, minValue, required, url } from 'vuelidate/lib/validators';
     import { bytes, filename, path } from '../plugins/vuelidate-custom-validators.js';
+    import { newRequest } from '../repositories/ariaRepository';
 
     export default {
         name: 'NewDownloadFormCard',
@@ -125,7 +131,9 @@
             filename: null,
             maxConnections: null,
             maxRetries: null,
-            maxSpeed: null
+            maxSpeed: null,
+
+            isSending: false
         }),
 
         validations: {
@@ -138,6 +146,10 @@
         },
 
         computed: {
+            isInvalid() {
+                return this.$v.$invalid;
+            },
+
             uriErrors() {
                 return this.errorsShorthand(this.$v.uri, [
                     {prop: 'required', error: 'URI is required'},
@@ -181,8 +193,29 @@
         },
 
         methods: {
+            submit() {
+                this.isSending = true;
+
+                const opts = {
+                    dir: this.destination || undefined,
+                    out: this.filename || undefined,
+                    maxConnectionsPerServer: this.maxConnections || undefined,
+                    maxTries: this.maxRetries || undefined,
+                    maxSpeed: this.maxSpeed || undefined
+                };
+
+                newRequest({uris: this.uri, options: opts}).then(() => {
+                    this.$toast('Download queued !');
+                }, err => {
+                    this.$toast(`An error occurred: ${err.message || err}`);
+                }).finally(() => {
+                    this.isSending = false;
+                    this.$emit('close');
+                });
+            },
+
             onCancel() {
-                this.$emit('cancel');
+                this.$emit('close');
                 this.reset();
             },
 

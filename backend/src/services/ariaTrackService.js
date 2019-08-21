@@ -150,11 +150,11 @@ export class AriaTrackService {
                         // Check if the output name has been set manually
                         value.out = opts.out;
 
-                    } else if (value?.files[0]?.path) {
+                    } else if (value?.files?.[0]?.path) {
                         // Check if the first file has a name
                         value.out = path.basename(value.files[0].path);
 
-                    } else if (value?.files[0]?.uris[0]?.uri) {
+                    } else if (value?.files?.[0]?.uris[0]?.uri) {
                         // In last resort, determine the name from the first uri
                         value.out = path.basename(value.files[0].uris[0].uri);
                     } else {

@@ -21,7 +21,7 @@ const requestFactory = (path, method = 'get', axiosConfig = {}, mapper = x => x)
     const urlBuilder = query => {
         let url = path;
         if (query) {
-            url += '&';
+            url += '?';
             url += queryString.stringify(query);
         }
 

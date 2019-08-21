@@ -26,6 +26,7 @@
     import TheSidebar from '@/components/TheSidebar.vue';
     import TheAppBar from '@/components/TheAppBar.vue';
     import { healthRequest } from './repositories/repository';
+    import { setAuthorizationHeader } from './repositories/requestFactory';
 
     export default {
         name: 'App',
@@ -39,6 +40,7 @@
             if (this.$store.getters['persistence/isAvailable']) {
                 const get = this.$store.getters['persistence/retriever'];
                 this.$store.commit('auth/loadTokensFromPersistence', {get});
+                setAuthorizationHeader(this.$store.getters['auth/bearerToken']);
             }
 
             // Give a way for the auth to persist its tokens
@@ -62,7 +64,7 @@
                 this.$store.commit('auth/setLogged', {loggedIn: false});
             });
 
-            this.$store.watch(
+            this._unwatchAppUnlocked = this.$store.watch(
                 (state, getters) => getters.isAppUnlocked,
                 (current, prev) => {
                     if (prev === false && current === true) {
@@ -83,6 +85,7 @@
         },
 
         beforeDestroy() {
+            this._unwatchAppUnlocked();
             healthRequest.stopPolling();
         }
     };

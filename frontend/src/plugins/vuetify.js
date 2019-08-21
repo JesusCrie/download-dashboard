@@ -1,9 +1,21 @@
 import Vue from 'vue';
-import Vuetify from 'vuetify/lib';
+import Vuetify, { VBtn, VIcon, VSnackbar } from 'vuetify/lib';
 import '@mdi/font/css/materialdesignicons.min.css';
 import colors from 'vuetify/lib/util/colors';
+import VuetifyToast from 'vuetify-toast-snackbar';
 
-Vue.use(Vuetify);
+Vue.use(Vuetify, {
+    components: {
+        VSnackbar, VBtn, VIcon
+    }
+});
+
+// Plugin toast
+Vue.use(VuetifyToast, {
+    x: 'center',
+    y: 'bottom',
+    color: ''
+});
 
 const baseTheme = {
     error: colors.red.accent2,

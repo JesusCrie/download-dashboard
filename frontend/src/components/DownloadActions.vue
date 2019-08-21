@@ -38,16 +38,16 @@
             <span>Pause <span class="underline">{{ selectedText }}</span></span>
         </VTooltip>
 
-        <!-- Cancel selected -->
+        <!-- Delete selected -->
         <VTooltip top>
             <template v-slot:activator="{ on }">
                 <VBtn v-on="on" depressed color="primary" class="no-radius left"
-                      @click="onStop" :loading="isStopLoading">
-                    <VIcon>mdi-stop</VIcon>
+                      @click="onDelete" :loading="isDeleteLoading">
+                    <VIcon>mdi-delete</VIcon>
                 </VBtn>
             </template>
 
-            <span>Stop <span class="underline">{{ selectedText }}</span></span>
+            <span>Purge <span class="underline">{{ selectedText }}</span></span>
         </VTooltip>
 
     </VFlex>
@@ -75,7 +75,7 @@
                 default: false
             },
 
-            'is-stop-loading': {
+            'is-delete-loading': {
                 type: Boolean,
                 required: false,
                 default: false
@@ -101,7 +101,7 @@
                 this.$emit(this.selected ? 'pause-selected' : 'pause-all');
             },
 
-            onStop() {
+            onDelete() {
                 this.$emit(this.selected ? 'stop-selected' : 'stop-all');
             }
         }
