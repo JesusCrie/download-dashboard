@@ -40,7 +40,7 @@
 <script>
     import DownloadStatusChip from './DownloadStatusChip';
     import DownloadProgressSlot from './DownloadProgressSlot';
-    import { listRequest } from '../repositories/ariaRepository';
+    import { listRequest } from '../../repositories/ariaRepository';
     import { mapState } from 'vuex';
 
     export default {

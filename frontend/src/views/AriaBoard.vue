@@ -28,7 +28,9 @@
                 />
 
                 <!-- Downloads -->
-                <DownloadTable v-model="selectedItems"/>
+                <VCard outlined>
+                    <DownloadTable v-model="selectedItems"/>
+                </VCard>
 
                 <VDialog persistent
                          v-model="dialogOpen" :max-width="responsiveDialogWidth">
@@ -41,11 +43,11 @@
 </template>
 
 <script lang="js">
-    import DownloadStatusChip from '@/components/DownloadStatusChip.vue';
-    import DownloadProgressSlot from '@/components/DownloadProgressSlot.vue';
-    import DownloadActions from '@/components/DownloadActions.vue';
-    import NewDownloadFormCard from '@/components/NewDownloadFormCard.vue';
-    import DownloadTable from '@/components/DownloadTable.vue';
+    import DownloadStatusChip from '../components/download/DownloadStatusChip.vue';
+    import DownloadProgressSlot from '../components/download/DownloadProgressSlot.vue';
+    import DownloadActions from '../components/download/DownloadActions.vue';
+    import NewDownloadFormCard from '../components/download/NewDownloadFormCard.vue';
+    import DownloadTable from '../components/download/DownloadTable.vue';
     import { pauseRequest, purgeRequest, removeRequest, resumeRequest } from '../repositories/ariaRepository';
     import { TrackStatus } from '../store';
 

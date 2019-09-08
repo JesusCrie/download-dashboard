@@ -4,6 +4,7 @@ import StatusBoard from './views/StatusBoard';
 import AriaBoard from './views/AriaBoard';
 import Home from './views/Home';
 import store from './store/index';
+import FilesView from './views/FilesView';
 
 Vue.use(Router);
 
@@ -24,6 +25,10 @@ const router = new Router({
             path: '/aria',
             name: 'aria',
             component: AriaBoard
+        }, {
+            path: '/files',
+            name: 'files',
+            component: FilesView
         }
     ]
 });

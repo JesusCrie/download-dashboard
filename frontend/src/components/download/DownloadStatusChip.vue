@@ -12,7 +12,7 @@
 </template>
 
 <script lang="js">
-    import { TrackStatus } from '../store';
+    import { TrackStatus } from '../../store';
 
     export default {
         name: 'DownloadStatusChip',

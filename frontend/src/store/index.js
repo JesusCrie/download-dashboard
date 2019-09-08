@@ -28,6 +28,10 @@ const routes = [
         displayName: 'Aria2',
         routeName: 'aria',
         iconName: 'cloud-sync'
+    }, {
+        displayName: 'File explorer',
+        routeName: 'files',
+        iconName: 'file-tree'
     }
 ];
 

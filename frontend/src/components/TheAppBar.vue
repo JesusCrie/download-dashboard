@@ -34,26 +34,6 @@
 
         methods: {
             ...mapMutations(['toggleDrawerVisible']),
-
-            onOnline() {
-                this.$store.commit('setOnlineState', {isOnline: true});
-            },
-            onOffline() {
-                this.$store.commit('setOnlineState', {isOnline: false});
-            }
-        },
-
-        mounted() {
-            window.addEventListener('online', this.onOnline);
-            window.addEventListener('offline', this.onOffline);
-
-            // Trigger initial state
-            (navigator.onLine ? this.onOnline : this.onOffline)();
-        },
-
-        beforeDestroy() {
-            window.removeEventListener('online', this.onOnline);
-            window.removeEventListener('offline', this.onOffline);
         }
     };
 </script>
