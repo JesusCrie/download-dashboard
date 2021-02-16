@@ -25,7 +25,7 @@
     "jsonwebtoken": "^8.5.1",
     "redis": "^2.8.0",
     "signale": "^1.4.0",
-    "systeminformation": "^4.14.4",
+    "systeminformation": "^5.3.1",
     "tcp-port-used": "^1.0.1"
   },
   "devDependencies": {
